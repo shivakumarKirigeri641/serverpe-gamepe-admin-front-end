@@ -84,6 +84,28 @@ async function request(path, { method = 'GET', body, signal, quiet = false } = {
   return payload.data ?? payload;
 }
 
+/**
+ * Brand assets, from the back-end's public endpoint.
+ *
+ * Unauthenticated on purpose — it is the same manifest the marketing site and
+ * the game board read, and the panel bundling its own copy of the logo is how
+ * three surfaces end up showing three different marks.
+ */
+export async function fetchBrand() {
+  try {
+    const res = await fetch(`${API_BASE}${PUBLIC_PATH}/brand`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) return null;
+    const payload = await res.json();
+    return payload.data ?? payload;
+  } catch {
+    // The panel must still work with the API's public side unreachable; the
+    // wordmark falls back to text.
+    return null;
+  }
+}
+
 export const api = {
   get: (path, opts) => request(path, opts),
   post: (path, body, opts) => request(path, { ...opts, method: 'POST', body }),

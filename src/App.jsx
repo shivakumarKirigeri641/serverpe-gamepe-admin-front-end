@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { getToken, logout, setToastHandler, setUnauthorizedHandler } from './lib/api.js';
+import { fetchBrand, getToken, logout, setToastHandler, setUnauthorizedHandler } from './lib/api.js';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Live from './pages/Live.jsx';
@@ -26,12 +26,14 @@ import Credits from './pages/Credits.jsx';
 import Lookup from './pages/Lookup.jsx';
 import Moderation from './pages/Moderation.jsx';
 import Documents from './pages/Documents.jsx';
+import Trial from './pages/Trial.jsx';
 import Settings from './pages/Settings.jsx';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: '◎', end: true },
   { to: '/live', label: 'Live monitoring', icon: '◉' },
   { to: '/analytics', label: 'Analytics', icon: '◫' },
+  { to: '/trial', label: 'Free trial', icon: '◷' },
   { to: '/conversations', label: 'Conversations', icon: '✉' },
   { to: '/players', label: 'Players', icon: '☰' },
   { to: '/lookup', label: 'Number lookup', icon: '⌕' },
@@ -75,6 +77,19 @@ function Toaster() {
 
 function Shell({ children, onSignOut }) {
   const [open, setOpen] = useState(false);
+  const [brand, setBrand] = useState(null);
+
+  // Fetched, not bundled: one manifest serves this panel, the marketing site
+  // and the game board, so a new logo lands everywhere at once.
+  useEffect(() => {
+    let alive = true;
+    fetchBrand().then((b) => {
+      if (alive) setBrand(b);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen lg:flex">
@@ -85,7 +100,14 @@ function Shell({ children, onSignOut }) {
           ${open ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="px-5 py-5 border-b border-white/10">
-          <div className="text-lg font-extrabold tracking-tight">MastiPe</div>
+          {brand?.primary?.markLight ? (
+            <div className="flex items-center gap-2.5">
+              <img src={brand.primary.markLight} alt="" className="h-7 w-auto" aria-hidden="true" />
+              <div className="text-lg font-extrabold tracking-tight">{brand.name}</div>
+            </div>
+          ) : (
+            <div className="text-lg font-extrabold tracking-tight">MastiPe</div>
+          )}
           <div className="text-xs text-white/60 mt-0.5">Admin · ServerPe App Solutions</div>
         </div>
 
@@ -164,6 +186,7 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/live" element={<Live />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/trial" element={<Trial />} />
           <Route path="/conversations" element={<Conversations />} />
           <Route path="/conversations/:id" element={<Conversations />} />
           <Route path="/players" element={<Players />} />
