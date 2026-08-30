@@ -27,6 +27,7 @@ import Lookup from './pages/Lookup.jsx';
 import Moderation from './pages/Moderation.jsx';
 import Documents from './pages/Documents.jsx';
 import Trial from './pages/Trial.jsx';
+import Notifications from './pages/Notifications.jsx';
 import Settings from './pages/Settings.jsx';
 
 const NAV = [
@@ -45,6 +46,7 @@ const NAV = [
   { to: '/feedback', label: 'Feedback', icon: '★' },
   { to: '/documents', label: 'Documents', icon: '⎙' },
   { to: '/events', label: 'Event stream', icon: '⌁' },
+  { to: '/notifications', label: 'Notifications', icon: '✉' },
   { to: '/settings', label: 'Settings', icon: '⚙' },
 ];
 
@@ -202,6 +204,7 @@ export default function App() {
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
