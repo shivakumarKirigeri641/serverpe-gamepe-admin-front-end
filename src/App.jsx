@@ -27,6 +27,7 @@ import Lookup from './pages/Lookup.jsx';
 import Moderation from './pages/Moderation.jsx';
 import Documents from './pages/Documents.jsx';
 import Trial from './pages/Trial.jsx';
+import Hosts from './pages/Hosts.jsx';
 import Notifications from './pages/Notifications.jsx';
 import Settings from './pages/Settings.jsx';
 
@@ -36,6 +37,7 @@ const NAV = [
   { to: '/analytics', label: 'Analytics', icon: '◫' },
   { to: '/trial', label: 'Free trial', icon: '◷' },
   { to: '/conversations', label: 'Conversations', icon: '✉' },
+  { to: '/hosts', label: 'Hosts', icon: '★' },
   { to: '/players', label: 'Players', icon: '☰' },
   { to: '/lookup', label: 'Number lookup', icon: '⌕' },
   { to: '/moderation', label: 'Blocked numbers', icon: '⊘' },
@@ -191,6 +193,8 @@ export default function App() {
           <Route path="/trial" element={<Trial />} />
           <Route path="/conversations" element={<Conversations />} />
           <Route path="/conversations/:id" element={<Conversations />} />
+          <Route path="/hosts" element={<Hosts />} />
+          <Route path="/hosts/:id" element={<Hosts />} />
           <Route path="/players" element={<Players />} />
           <Route path="/players/:id" element={<Players />} />
           <Route path="/lookup" element={<Lookup />} />

@@ -14,6 +14,7 @@
  * back on a second day.
  */
 
+import { useState } from 'react';
 import { api, num, when } from '../lib/api.js';
 import { ErrorBox, Loading, Page, REFRESH_MS, Stat, Table, usePolling } from '../components/ui.jsx';
 
@@ -37,6 +38,99 @@ function Sparkline({ rows, field, color = '#7d0f22' }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * Moving the trial's end date.
+ *
+ * It used to mean editing FREE_TRIAL_ENDS_AT on the server and restarting,
+ * during which the marketing site went on advertising the old date. Saving here
+ * changes it everywhere at once — the website badge, the plan taglines in both
+ * languages, the greeting players get, and the switch that decides whether
+ * anybody is charged.
+ */
+function TrialDate({ onSaved }) {
+  const { data, error, refresh } = usePolling(() => api.get('/settings'), 0, []);
+  const [value, setValue] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  if (error || !data) return null;
+
+  // <input type="date"> wants a plain yyyy-mm-dd, in IST rather than UTC — an
+  // 11:59pm IST deadline is the previous day in UTC, and showing that would be
+  // an off-by-one nobody would question until the trial ended a day early.
+  const asDate = (iso) =>
+    new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+  const current = asDate(data.freeTrialEndsAt);
+
+  const save = async (dateStr) => {
+    setBusy(true);
+    try {
+      // End of that day in IST, so the trial covers the whole date shown.
+      await api.put('/settings/trial', { endsAt: `${dateStr}T23:59:59+05:30` });
+      setValue('');
+      refresh();
+      onSaved?.();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const reset = async () => {
+    setBusy(true);
+    try {
+      await api.put('/settings/trial', { endsAt: null });
+      refresh();
+      onSaved?.();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="card p-5 mb-5">
+      <h2 className="font-extrabold">Trial end date</h2>
+      <p className="text-sm text-muted mt-1 leading-relaxed">
+        Changing this updates the website, the plan descriptions in both languages and what
+        players are told — immediately, with no restart.
+      </p>
+
+      <div className="flex flex-wrap items-end gap-3 mt-4">
+        <label className="text-sm">
+          <span className="block text-xs font-bold text-muted mb-1">Ends on</span>
+          <input
+            type="date"
+            value={value || current}
+            onChange={(e) => setValue(e.target.value)}
+            className="border border-line rounded-lg px-3 py-2 text-sm"
+          />
+        </label>
+
+        <button
+          className="btn"
+          disabled={busy || !value || value === current}
+          onClick={() => save(value)}
+        >
+          {busy ? 'Saving…' : 'Save date'}
+        </button>
+
+        {data.source === 'database' && (
+          <button className="btn-sec" disabled={busy} onClick={reset}>
+            Reset to .env
+          </button>
+        )}
+      </div>
+
+      <p className="text-xs text-muted mt-3">
+        {data.source === 'database'
+          ? `Set in this panel${data.updatedAt ? ` on ${when(data.updatedAt)}` : ''}${
+              data.updatedBy ? ` by ${data.updatedBy}` : ''
+            }. The server's own FREE_TRIAL_ENDS_AT says ${asDate(data.environmentDefault)}.`
+          : `Currently coming from the server's FREE_TRIAL_ENDS_AT. Saving a date here takes over.`}
+      </p>
     </div>
   );
 }
@@ -75,10 +169,12 @@ export default function Trial() {
         <p className="text-sm text-muted mt-2 leading-relaxed">
           {isOver
             ? 'The trial window has closed. Charging is still off until you switch MONETIZATION_ENABLED on.'
-            : `${daysRemaining} day${daysRemaining === 1 ? '' : 's'} left to decide. To extend it, change FREE_TRIAL_ENDS_AT in the back-end .env and restart — the date players are told updates with it.`}
+            : `${daysRemaining} day${daysRemaining === 1 ? '' : 's'} left to decide. Change the date below and every surface follows at once.`}
           {monetizationEnabled && ' Charging is currently ON.'}
         </p>
       </div>
+
+      <TrialDate onSaved={refresh} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <Stat index={0} label="Said hi" value={num(counts.signups)} sub="Loosest measure" />
