@@ -20,9 +20,10 @@ import {
   YAxis,
 } from 'recharts';
 import { api, num } from '../lib/api.js';
-import { ErrorBox, Loading, Page, Table, usePolling, REFRESH_MS } from '../components/ui.jsx';
+import { ErrorBox, Loading, Page, Table, usePolling, REFRESH_MS , axisProps, gridProps, ChartTooltip} from '../components/ui.jsx';
 
-const axis = { stroke: '#6b7684', fontSize: 11, tickLine: false, axisLine: false };
+// Shared with every other chart in the panel, so no two look subtly different.
+const axis = axisProps;
 
 const FUNNEL_LABELS = {
   messaged_bot: 'Messaged the bot',
@@ -115,10 +116,10 @@ export default function Analytics() {
                     <span className="font-semibold">{row.label}</span>
                     <span className="text-muted">
                       {num(row.value)}
-                      {drop > 0 && <span className="text-red-600 ml-2">−{drop}%</span>}
+                      {drop > 0 && <span className="text-bad ml-2">−{drop}%</span>}
                     </span>
                   </div>
-                  <div className="h-2.5 rounded-full bg-line/60 overflow-hidden">
+                  <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
                     <div className="h-full bg-brand rounded-full" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
@@ -135,13 +136,13 @@ export default function Analytics() {
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={response} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e7ee" vertical={false} />
+                <CartesianGrid {...gridProps} />
                 <XAxis dataKey="bucket" {...axis} />
                 <YAxis allowDecimals={false} {...axis} />
                 <Tooltip />
                 <Bar dataKey="responses" radius={[6, 6, 0, 0]}>
                   {response.map((r, i) => (
-                    <Cell key={i} fill={i < 3 ? '#1f9d55' : i < 5 ? '#f0a202' : '#b3122b'} />
+                    <Cell key={i} fill={i < 3 ? '#2dd4bf' : i < 5 ? '#f5b83d' : '#ff4d6d'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -159,14 +160,14 @@ export default function Analytics() {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={series} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e7ee" vertical={false} />
+              <CartesianGrid {...gridProps} />
               <XAxis dataKey="day" {...axis} />
               <YAxis allowDecimals={false} {...axis} />
               <Tooltip />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line type="monotone" name="Active" dataKey="players" stroke="#7d0f22" strokeWidth={2} dot={false} />
-              <Line type="monotone" name="New" dataKey="newPlayers" stroke="#f0a202" strokeWidth={2} dot={false} />
-              <Line type="monotone" name="Games" dataKey="games" stroke="#1f9d55" strokeWidth={2} dot={false} />
+              <Line type="monotone" name="Active" dataKey="players" stroke="#ff4d6d" strokeWidth={2} dot={false} />
+              <Line type="monotone" name="New" dataKey="newPlayers" stroke="#f5b83d" strokeWidth={2} dot={false} />
+              <Line type="monotone" name="Games" dataKey="games" stroke="#2dd4bf" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -178,14 +179,14 @@ export default function Analytics() {
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={delivery} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e7ee" vertical={false} />
+                <CartesianGrid {...gridProps} />
                 <XAxis dataKey="day" tickFormatter={(d) => d.slice(5)} {...axis} />
                 <YAxis allowDecimals={false} {...axis} />
                 <Tooltip />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar name="Sent" dataKey="sent" fill="#e2e7ee" radius={[4, 4, 0, 0]} />
-                <Bar name="Delivered" dataKey="delivered" fill="#1f9d55" radius={[4, 4, 0, 0]} />
-                <Bar name="Read" dataKey="read" fill="#7d0f22" radius={[4, 4, 0, 0]} />
+                <Bar name="Sent" dataKey="sent" fill="rgba(255,255,255,.12)" radius={[4, 4, 0, 0]} />
+                <Bar name="Delivered" dataKey="delivered" fill="#2dd4bf" radius={[4, 4, 0, 0]} />
+                <Bar name="Read" dataKey="read" fill="#ff4d6d" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

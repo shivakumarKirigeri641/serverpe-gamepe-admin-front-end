@@ -31,25 +31,50 @@ import Hosts from './pages/Hosts.jsx';
 import Notifications from './pages/Notifications.jsx';
 import Settings from './pages/Settings.jsx';
 
+/**
+ * Grouped, because eighteen flat links is a wall you read every time instead
+ * of a menu you learn. The headings are what let you find "Blocked numbers"
+ * without scanning all eighteen.
+ */
 const NAV = [
-  { to: '/', label: 'Dashboard', icon: '◎', end: true },
-  { to: '/live', label: 'Live monitoring', icon: '◉' },
-  { to: '/analytics', label: 'Analytics', icon: '◫' },
-  { to: '/trial', label: 'Free trial', icon: '◷' },
-  { to: '/conversations', label: 'Conversations', icon: '✉' },
-  { to: '/hosts', label: 'Hosts', icon: '★' },
-  { to: '/players', label: 'Players', icon: '☰' },
-  { to: '/lookup', label: 'Number lookup', icon: '⌕' },
-  { to: '/moderation', label: 'Blocked numbers', icon: '⊘' },
-  { to: '/games', label: 'Games', icon: '⬢' },
-  { to: '/revenue', label: 'Revenue & GST', icon: '₹' },
-  { to: '/credits', label: 'Credits & wallets', icon: '◈' },
-  { to: '/support', label: 'Support tickets', icon: '⛑' },
-  { to: '/feedback', label: 'Feedback', icon: '★' },
-  { to: '/documents', label: 'Documents', icon: '⎙' },
-  { to: '/events', label: 'Event stream', icon: '⌁' },
-  { to: '/notifications', label: 'Notifications', icon: '✉' },
-  { to: '/settings', label: 'Settings', icon: '⚙' },
+  {
+    group: 'Overview',
+    items: [
+      { to: '/', label: 'Dashboard', icon: '◎', end: true },
+      { to: '/live', label: 'Live monitoring', icon: '◉' },
+      { to: '/analytics', label: 'Analytics', icon: '◫' },
+      { to: '/trial', label: 'Free trial', icon: '◷' },
+    ],
+  },
+  {
+    group: 'People',
+    items: [
+      { to: '/players', label: 'Players', icon: '☰' },
+      { to: '/hosts', label: 'Hosts', icon: '★' },
+      { to: '/conversations', label: 'Conversations', icon: '✉' },
+      { to: '/lookup', label: 'Number lookup', icon: '⌕' },
+      { to: '/moderation', label: 'Blocked numbers', icon: '⊘' },
+    ],
+  },
+  {
+    group: 'Play',
+    items: [
+      { to: '/games', label: 'Games', icon: '⬢' },
+      { to: '/feedback', label: 'Feedback', icon: '♥' },
+      { to: '/events', label: 'Event stream', icon: '⌁' },
+    ],
+  },
+  {
+    group: 'Business',
+    items: [
+      { to: '/revenue', label: 'Revenue & GST', icon: '₹' },
+      { to: '/credits', label: 'Credits & wallets', icon: '◈' },
+      { to: '/support', label: 'Support tickets', icon: '⛑' },
+      { to: '/documents', label: 'Documents', icon: '⎙' },
+      { to: '/notifications', label: 'Notifications', icon: '⚑' },
+      { to: '/settings', label: 'Settings', icon: '⚙' },
+    ],
+  },
 ];
 
 function Toaster() {
@@ -69,8 +94,12 @@ function Toaster() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 16 }}
-          className={`fixed left-1/2 -translate-x-1/2 bottom-6 z-50 rounded-full px-5 py-3 text-sm
-            font-semibold text-white shadow-lg ${toast.tone === 'bad' ? 'bg-red-600' : 'bg-ink'}`}
+          className={`fixed left-1/2 -translate-x-1/2 bottom-6 z-50 rounded-full border px-5 py-3
+            text-sm font-semibold shadow-lift backdrop-blur-xl ${
+              toast.tone === 'bad'
+                ? 'border-bad/30 bg-bad/15 text-bad'
+                : 'border-good/30 bg-good/15 text-good'
+            }`}
         >
           {toast.message}
         </motion.div>
@@ -99,58 +128,78 @@ function Shell({ children, onSignOut }) {
     <div className="min-h-screen lg:flex">
       {/* Wide, always-visible rail on desktop; a drawer on a phone. */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 w-72 bg-brand-deep text-white
-          transform transition-transform lg:transform-none
+        className={`fixed lg:sticky lg:top-0 inset-y-0 left-0 z-40 w-[264px] shrink-0
+          h-screen flex flex-col border-r border-line bg-bg-deep/80 backdrop-blur-xl
+          transform transition-transform duration-200 lg:transform-none
           ${open ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className="px-5 py-5 border-b border-white/10">
-          {brand?.primary?.markLight ? (
-            <div className="flex items-center gap-2.5">
+        <div className="px-5 py-5 border-b border-line">
+          <div className="flex items-center gap-2.5">
+            {brand?.primary?.markLight ? (
               <img src={brand.primary.markLight} alt="" className="h-7 w-auto" aria-hidden="true" />
-              <div className="text-lg font-extrabold tracking-tight">{brand.name}</div>
+            ) : (
+              <span
+                className="grid place-items-center w-8 h-8 rounded-xl text-bg-deep font-extrabold text-sm shrink-0"
+                style={{ background: 'linear-gradient(135deg,#f5b83d,#c98a12)' }}
+                aria-hidden="true"
+              >
+                M
+              </span>
+            )}
+            <div className="min-w-0">
+              <div className="text-[15px] font-extrabold tracking-tight text-ink truncate">
+                {brand?.name ?? 'MastiPe'}
+              </div>
+              <div className="text-[10.5px] uppercase tracking-[.12em] text-faint">Admin console</div>
             </div>
-          ) : (
-            <div className="text-lg font-extrabold tracking-tight">MastiPe</div>
-          )}
-          <div className="text-xs text-white/60 mt-0.5">Admin · ServerPe App Solutions</div>
+          </div>
         </div>
 
-        <nav className="p-3 space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 150px)' }}>
-          {NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}
-            >
-              <span className="w-5 text-center opacity-80">{item.icon}</span>
-              {item.label}
-            </NavLink>
+        <nav className="flex-1 overflow-y-auto p-3 space-y-5">
+          {NAV.map((section) => (
+            <div key={section.group}>
+              <div className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[.14em] text-faint">
+                {section.group}
+              </div>
+              <div className="space-y-0.5">
+                {section.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}
+                  >
+                    <span className="w-4 text-center text-[13px] opacity-70">{item.icon}</span>
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
-        <div className="absolute bottom-0 inset-x-0 p-3 border-t border-white/10">
+        <div className="p-3 border-t border-line">
           <button className="nav-link w-full" onClick={onSignOut}>
-            <span className="w-5 text-center opacity-80">⏻</span>
+            <span className="w-4 text-center text-[13px] opacity-70">⏻</span>
             Sign out
           </button>
         </div>
       </aside>
 
       {open && (
-        <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setOpen(false)} />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden" onClick={() => setOpen(false)} />
       )}
 
       <div className="flex-1 min-w-0">
-        <header className="lg:hidden sticky top-0 z-20 bg-brand-deep text-white px-4 py-3 flex items-center gap-3">
-          <button onClick={() => setOpen(true)} className="text-2xl leading-none">
+        <header className="lg:hidden sticky top-0 z-20 border-b border-line bg-bg-deep/85 backdrop-blur-xl px-4 py-3 flex items-center gap-3">
+          <button onClick={() => setOpen(true)} className="text-xl leading-none text-muted" aria-label="Open menu">
             ☰
           </button>
-          <span className="font-bold">MastiPe Admin</span>
+          <span className="font-bold text-ink">{brand?.name ?? 'MastiPe'} Admin</span>
         </header>
 
-        <main className="p-4 sm:p-6 max-w-[1400px] mx-auto">{children}</main>
+        <main className="p-4 sm:p-7 max-w-[1500px] mx-auto">{children}</main>
       </div>
     </div>
   );

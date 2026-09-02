@@ -31,8 +31,8 @@ const CATEGORIES = [
 ];
 
 const CATEGORY_TONE = {
-  abuse: 'bg-red-100 text-red-700',
-  betting: 'bg-red-100 text-red-700',
+  abuse: 'bg-bad/12 text-bad',
+  betting: 'bg-bad/12 text-bad',
   cheating: 'bg-amber-100 text-amber-800',
   spam: 'bg-amber-100 text-amber-800',
 };
@@ -157,7 +157,7 @@ function BlockForm({ onDone }) {
         <div className="mt-3 text-sm">
           <strong className="text-good">Blocked {result.applied.length}.</strong>
           {result.failed.length > 0 && (
-            <span className="text-red-700">
+            <span className="text-bad">
               {' '}
               {result.failed.length} failed: {result.failed.map((f) => f.waId).join(', ')}
             </span>
@@ -429,9 +429,9 @@ export default function Moderation() {
           <form
             onClick={(e) => e.stopPropagation()}
             onSubmit={runBulk}
-            className="bg-white rounded-2xl shadow-card w-full max-w-md p-6"
+            className="bg-surface rounded-2xl shadow-card w-full max-w-md p-6"
           >
-            <h2 className="text-lg font-bold text-brand">
+            <h2 className="text-lg font-bold text-gold">
               {bulk === 'unblock' ? 'Unblock' : 'Re-block'} {selected.length} number
               {selected.length === 1 ? '' : 's'}
             </h2>
@@ -476,9 +476,9 @@ export default function Moderation() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-card w-full max-w-2xl p-6 max-h-[80vh] overflow-y-auto"
+            className="bg-surface rounded-2xl shadow-card w-full max-w-2xl p-6 max-h-[80vh] overflow-y-auto"
           >
-            <h2 className="text-lg font-bold text-brand">History for +{history.waId}</h2>
+            <h2 className="text-lg font-bold text-gold">History for +{history.waId}</h2>
             {!history.rows ? (
               <Loading />
             ) : (
@@ -489,7 +489,7 @@ export default function Moderation() {
                     <td className="td">
                       <Badge
                         value={h.action}
-                        tone={h.action === 'block' ? 'bg-red-100 text-red-700' : 'bg-good/10 text-good'}
+                        tone={h.action === 'block' ? 'bg-bad/12 text-bad' : 'bg-good/10 text-good'}
                       />
                     </td>
                     <td className="td text-sm">{h.reason}</td>

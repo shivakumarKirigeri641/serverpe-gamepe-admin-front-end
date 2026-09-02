@@ -121,7 +121,7 @@ function PlayerDetail({ id }) {
           {data.wallet.history.map((t, i) => (
             <tr key={i}>
               <td className="td text-xs text-muted">{when(t.created_at)}</td>
-              <td className={`td font-semibold ${Number(t.amount_paise) < 0 ? 'text-red-600' : 'text-good'}`}>
+              <td className={`td font-semibold ${Number(t.amount_paise) < 0 ? 'text-bad' : 'text-good'}`}>
                 {Number(t.amount_paise) < 0 ? '−' : '+'}
                 {inr(Math.abs(Number(t.amount_paise)))}
               </td>
@@ -197,7 +197,7 @@ function PlayerList({ search, setSearch }) {
           {data.map((p) => (
             <tr key={p.id} className="hover:bg-line/20">
               <td className="td font-semibold">
-                <Link to={`/players/${p.id}`} className="text-brand hover:underline">
+                <Link to={`/players/${p.id}`} className="text-gold hover:underline">
                   {p.display_name || 'Unnamed'}
                 </Link>
               </td>

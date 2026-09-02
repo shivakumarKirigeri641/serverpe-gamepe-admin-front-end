@@ -76,9 +76,9 @@ function BlockDialog({ waId, blocked, onClose, onDone }) {
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
-        className="bg-white rounded-2xl shadow-card w-full max-w-md p-6"
+        className="bg-surface rounded-2xl shadow-card w-full max-w-md p-6"
       >
-        <h2 className="text-lg font-bold text-brand">
+        <h2 className="text-lg font-bold text-gold">
           {blocked ? 'Unblock' : 'Block'} +{waId}
         </h2>
         <p className="text-sm text-muted mt-1">
@@ -264,7 +264,7 @@ export default function Lookup() {
               <td className="td font-mono font-semibold">+{r.wa_id}</td>
               <td className="td">
                 {r.display_name || '—'}
-                {r.is_blocked && <Badge value="blocked" tone="bg-red-100 text-red-700 ml-2" />}
+                {r.is_blocked && <Badge value="blocked" tone="bg-bad/12 text-bad ml-2" />}
               </td>
               <td className="td">{num(r.games)}</td>
               <td className="td text-xs text-muted">
@@ -283,7 +283,7 @@ export default function Lookup() {
 
       {detail && detail.found === false && (
         <div className="card p-6">
-          <p className="font-bold text-red-700">This number is blocked but has never played.</p>
+          <p className="font-bold text-bad">This number is blocked but has never played.</p>
           <p className="text-sm text-muted mt-1">{detail.block?.reason}</p>
         </div>
       )}
@@ -293,7 +293,7 @@ export default function Lookup() {
           <div className="card p-5 mb-4">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-2xl font-extrabold text-brand">
+                <div className="text-2xl font-extrabold text-gold">
                   {detail.player.display_name || 'Unnamed player'}
                 </div>
                 <div className="font-mono text-lg mt-0.5">+{detail.player.wa_id}</div>
@@ -303,7 +303,7 @@ export default function Lookup() {
               </div>
               {detail.player.is_blocked && (
                 <div className="text-right">
-                  <Badge value="blocked" tone="bg-red-100 text-red-700" />
+                  <Badge value="blocked" tone="bg-bad/12 text-bad" />
                   <div className="text-xs text-muted mt-1 max-w-xs">{detail.player.blocked_reason}</div>
                   <div className="text-[11px] text-muted">
                     by {detail.player.blocked_by} · {when(detail.player.blocked_at)}
@@ -425,14 +425,14 @@ export default function Lookup() {
               >
                 Export conversation (CSV)
               </button>
-              <div className="card p-4 max-h-[60vh] overflow-y-auto bg-[#f6f3ef]">
+              <div className="card p-4 max-h-[60vh] overflow-y-auto bg-bg">
                 {[...detail.messages].reverse().map((m, i) => {
                   const inbound = m.direction === 'inbound';
                   return (
                     <div key={i} className={`flex mb-2 ${inbound ? 'justify-start' : 'justify-end'}`}>
                       <div
                         className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm whitespace-pre-wrap ${
-                          inbound ? 'bg-white' : 'bg-brand text-white'
+                          inbound ? 'bg-surface' : 'bg-brand text-white'
                         }`}
                       >
                         {bodyText(m.body) || <span className="opacity-60">[{m.kind}]</span>}
@@ -474,11 +474,11 @@ export default function Lookup() {
                 {detail.games.map((g) => (
                   <tr key={g.id}>
                     <td className="td font-mono">
-                      <Link to={`/games/${g.id}`} className="text-brand hover:underline">
+                      <Link to={`/games/${g.id}`} className="text-gold hover:underline">
                         {g.room_code}
                       </Link>
                     </td>
-                    <td className="td">{g.was_host ? <Badge value="host" tone="bg-brand/10 text-brand" /> : 'player'}</td>
+                    <td className="td">{g.was_host ? <Badge value="host" tone="bg-brand/10 text-gold" /> : 'player'}</td>
                     <td className="td"><Badge value={g.status} /></td>
                     <td className="td">{num(g.numbers)}</td>
                     <td className="td">{num(g.answered)}</td>
@@ -522,7 +522,7 @@ export default function Lookup() {
                   {detail.walletHistory.map((t, i) => (
                     <tr key={i}>
                       <td className="td text-xs text-muted">{when(t.created_at)}</td>
-                      <td className={`td font-semibold ${Number(t.amount_paise) < 0 ? 'text-red-600' : 'text-good'}`}>
+                      <td className={`td font-semibold ${Number(t.amount_paise) < 0 ? 'text-bad' : 'text-good'}`}>
                         {Number(t.amount_paise) < 0 ? '−' : '+'}
                         {inr(Math.abs(Number(t.amount_paise)))}
                       </td>

@@ -65,17 +65,35 @@ export default function Login({ onSuccess }) {
   const secs = String(lockedFor % 60).padStart(2, '0');
 
   return (
-    <div className="min-h-screen grid place-items-center bg-brand-deep px-4">
+    <div className="relative min-h-screen grid place-items-center px-4 overflow-hidden bg-bg-deep">
+      {/* Two soft colour washes behind the card. The gate is the first thing
+          anyone sees, and a flat black screen reads as "broken", not "secure". */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            'radial-gradient(680px 460px at 22% 18%, rgba(179,18,43,.30), transparent 62%),' +
+            'radial-gradient(600px 420px at 82% 84%, rgba(245,184,61,.16), transparent 60%)',
+        }}
+      />
       <motion.form
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
         onSubmit={submit}
-        className="w-full max-w-sm bg-white rounded-2xl shadow-card p-7"
+        className="card relative w-full max-w-sm p-8"
       >
-        <div className="text-center mb-6">
-          <div className="text-2xl font-extrabold text-brand">MastiPe</div>
-          <div className="text-sm text-muted mt-1">Admin panel</div>
+        <div className="text-center mb-7">
+          <span
+            className="inline-grid place-items-center w-12 h-12 rounded-2xl text-bg-deep font-extrabold text-lg mb-3"
+            style={{ background: 'linear-gradient(135deg,#f5b83d,#c98a12)', boxShadow: '0 8px 28px rgba(245,184,61,.3)' }}
+            aria-hidden="true"
+          >
+            M
+          </span>
+          <div className="text-[26px] font-extrabold tracking-tight text-gradient">MastiPe</div>
+          <div className="text-[11px] uppercase tracking-[.14em] text-faint mt-1">Admin console</div>
         </div>
 
         <label className="block text-[11px] font-bold uppercase tracking-wide text-muted mb-2">
@@ -94,7 +112,7 @@ export default function Login({ onSuccess }) {
         />
 
         {error && (
-          <p className="text-sm text-red-600 mt-3 text-center font-medium">
+          <p className="text-sm text-bad mt-3 text-center font-medium">
             {error}
             {lockedFor > 0 && (
               <span className="block text-muted font-normal mt-1">

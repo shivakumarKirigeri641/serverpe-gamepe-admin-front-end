@@ -75,7 +75,7 @@ export default function Live() {
             <div key={g.id} className="card p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="font-extrabold text-lg tracking-wide text-brand">{g.room_code}</div>
+                  <div className="font-extrabold text-lg tracking-wide text-gold">{g.room_code}</div>
                   <div className="text-xs text-muted mt-0.5">
                     Host {g.host_name} · {maskWa(g.host_wa_id)}
                   </div>
@@ -119,7 +119,7 @@ export default function Live() {
               <td className="td text-muted">{maskWa(p.wa_id)}</td>
               <td className="td font-mono">{p.room_code}</td>
               <td className="td">
-                {p.is_host ? <Badge value="host" tone="bg-brand/10 text-brand" /> : <span className="text-muted">player</span>}
+                {p.is_host ? <Badge value="host" tone="bg-brand/10 text-gold" /> : <span className="text-muted">player</span>}
               </td>
               <td className="td">{num(p.answered)}</td>
               <td className="td text-muted">{p.last_answer_at ? ago(p.last_answer_at) : '—'}</td>

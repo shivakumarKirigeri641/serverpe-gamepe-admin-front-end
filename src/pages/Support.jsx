@@ -63,7 +63,7 @@ function TicketDetail({ id }) {
               <div key={i} className={`mb-3 flex ${m.author === 'admin' ? 'justify-end' : 'justify-start'}`}>
                 <div
                   className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm whitespace-pre-wrap ${
-                    m.author === 'admin' ? 'bg-brand text-white' : 'bg-line/40'
+                    m.author === 'admin' ? 'bg-brand text-white' : 'bg-white/5'
                   }`}
                 >
                   {m.body}
@@ -128,7 +128,7 @@ function TicketDetail({ id }) {
               <dt className="text-muted">Player</dt>
               <dd className="font-medium">
                 {ticket.player_id ? (
-                  <Link to={`/players/${ticket.player_id}`} className="text-brand hover:underline">
+                  <Link to={`/players/${ticket.player_id}`} className="text-gold hover:underline">
                     {ticket.display_name || maskWa(ticket.wa_id)}
                   </Link>
                 ) : (
@@ -194,7 +194,7 @@ function TicketList() {
         {items.map((t) => (
           <tr key={t.id} className="hover:bg-line/20">
             <td className="td font-mono text-xs">
-              <Link to={`/support/${t.id}`} className="text-brand hover:underline font-semibold">
+              <Link to={`/support/${t.id}`} className="text-gold hover:underline font-semibold">
                 {t.reference}
               </Link>
             </td>

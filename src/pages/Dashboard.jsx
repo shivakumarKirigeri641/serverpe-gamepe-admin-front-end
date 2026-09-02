@@ -2,36 +2,36 @@
  * src/pages/Dashboard.jsx
  * ---------------------------------------------------------------------------
  * The one screen to open first: what is happening now, how today compares with
- * yesterday, and the shape of the last two weeks.
+ * yesterday, and the shape of the last thirty days.
+ *
+ * Chart choices are deliberate. Active players is an area, because it is one
+ * continuous quantity and the filled shape carries the trend at a glance.
+ * Games and prizes are lines on a shared axis, because the interesting thing
+ * is the gap between them - how many games actually produced a winner.
  */
 
 import { Link } from 'react-router-dom';
 import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Line, LineChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
-import { api, num, when } from '../lib/api.js';
-import { ErrorBox, LiveDot, Loading, Page, Stat, usePolling, REFRESH_MS } from '../components/ui.jsx';
-
-const chartAxis = { stroke: '#6b7684', fontSize: 11, tickLine: false, axisLine: false };
+import { api, num } from '../lib/api.js';
+import {
+  BarRow, ChartTooltip, ErrorBox, GradientDefs, Legend, LiveDot, Loading,
+  Page, Panel, Stat, VIZ, axisProps, gridProps, usePolling, REFRESH_MS,
+} from '../components/ui.jsx';
 
 export default function Dashboard() {
   const { data, error, loading } = usePolling(
     async () => {
-      const [overview, comparisons, metrics, live] = await Promise.all([
+      const [overview, comparisons, metrics, live, funnel] = await Promise.all([
         api.get('/overview'),
         api.get('/comparisons'),
         api.get('/metrics/daily'),
         api.get('/live'),
+        api.get('/funnel').catch(() => null),
       ]);
-      return { overview, comparisons, metrics, live };
+      return { overview, comparisons, metrics, live, funnel };
     },
     REFRESH_MS,
     [],
@@ -40,7 +40,7 @@ export default function Dashboard() {
   if (loading && !data) return <Loading />;
   if (error && !data) return <ErrorBox error={error} />;
 
-  const { overview, comparisons, metrics, live } = data;
+  const { overview, comparisons, metrics, live, funnel } = data;
   const daily = comparisons.daily.reduce((acc, r) => ({ ...acc, [r.metric]: r }), {});
 
   const series = metrics.map((m) => ({
@@ -48,168 +48,174 @@ export default function Dashboard() {
     players: m.active_players,
     games: m.games_started,
     prizes: m.claims_awarded,
+    joined: m.new_players,
   }));
+
+  // Sparklines read the same 30-day series, so a tile and the chart below it
+  // can never disagree about what happened.
+  const spark = (key) => series.map((s) => s[key]);
+  const funnelMax = funnel?.length ? Math.max(...funnel.map((s) => s.value)) : 0;
+
+  const rightNow = [
+    ['Games running', live.counts.games_running, 'text-good'],
+    ['Rooms waiting', live.counts.games_in_lobby, 'text-gold'],
+    ['Players in a game', live.counts.players_in_game, 'text-ink'],
+    ['Players waiting', live.counts.players_waiting, 'text-ink'],
+    ['Active last 5 min', live.counts.active_5m, 'text-viz-3'],
+    ['Messages in (1h)', live.counts.said_hi_1h, 'text-ink'],
+    ['Messages out (1h)', live.counts.sent_1h, 'text-ink'],
+    ['Open tickets', live.counts.tickets_open, 'text-ink'],
+  ];
 
   return (
     <Page
       title="Dashboard"
-      subtitle="Updated every 30 seconds"
-      actions={<LiveDot label={`${live.counts.games_running} running`} />}
+      subtitle="Refreshes every 10 seconds"
+      actions={<LiveDot label={`${live.counts.games_running} running now`} />}
     >
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <Stat
-          index={0}
-          label="Active players today"
+      {/* Today, against yesterday */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+        <Stat index={0} icon="◉" label="Active players" tone="gold" spark={spark('players')}
           value={num(daily['Active players']?.now ?? 0)}
-          delta={daily['Active players']?.changePct}
-          sub="vs yesterday"
-        />
-        <Stat
-          index={1}
-          label="Games today"
+          delta={daily['Active players']?.changePct} sub="vs yesterday" />
+        <Stat index={1} icon="⬢" label="Games today" tone="crimson" spark={spark('games')}
           value={num(daily['Games created']?.now ?? 0)}
-          delta={daily['Games created']?.changePct}
-          sub="vs yesterday"
-        />
-        <Stat
-          index={2}
-          label="New players today"
+          delta={daily['Games created']?.changePct} sub="vs yesterday" />
+        <Stat index={2} icon="✦" label="New players" tone="teal" spark={spark('joined')}
           value={num(daily['New players']?.now ?? 0)}
-          delta={daily['New players']?.changePct}
-          sub="vs yesterday"
-        />
-        <Stat
-          index={3}
-          label="Prizes won today"
+          delta={daily['New players']?.changePct} sub="vs yesterday" />
+        <Stat index={3} icon="♛" label="Prizes won" tone="violet" spark={spark('prizes')}
           value={num(daily['Prizes won']?.now ?? 0)}
-          delta={daily['Prizes won']?.changePct}
-          sub="vs yesterday"
-        />
+          delta={daily['Prizes won']?.changePct} sub="vs yesterday" />
       </div>
 
+      {/* All-time */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <Stat index={4} label="Total players" value={num(overview.total_players)} tone="ink" />
-        <Stat index={5} label="Games played" value={num(overview.total_games)} tone="ink" />
-        <Stat
-          index={6}
-          label="Messages sent"
-          value={num(overview.messages_out)}
-          sub={overview.messages_failed ? `${num(overview.messages_failed)} failed` : 'none failed'}
-          tone="ink"
-        />
-        <Stat index={7} label="Events recorded" value={num(overview.events_recorded)} tone="ink" />
+        <Stat index={4} label="Total players" tone="ink" value={num(overview.total_players)} />
+        <Stat index={5} label="Games played" tone="ink" value={num(overview.total_games)}
+          sub={`${num(overview.games_completed)} completed`} />
+        <Stat index={6} label="Messages sent" tone="ink" value={num(overview.messages_out)}
+          sub={overview.messages_failed ? `${num(overview.messages_failed)} failed` : 'none failed'} />
+        <Stat index={7} label="Events recorded" tone="ink" value={num(overview.events_recorded)}
+          sub={`${num(overview.board_sessions)} board sessions`} />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 mb-4">
-        <div className="card p-4">
-          <h2 className="text-sm font-bold text-ink mb-3">Active players, last 30 days</h2>
-          <div className="h-56">
+      <div className="grid xl:grid-cols-3 gap-4 mb-4">
+        <Panel className="xl:col-span-2" title="Active players" subtitle="Distinct players seen per day, last 30 days">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
-                <defs>
-                  <linearGradient id="playersFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#7d0f22" stopOpacity={0.28} />
-                    <stop offset="100%" stopColor="#7d0f22" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e7ee" vertical={false} />
-                <XAxis dataKey="day" {...chartAxis} />
-                <YAxis allowDecimals={false} {...chartAxis} />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="players"
-                  stroke="#7d0f22"
-                  strokeWidth={2}
-                  fill="url(#playersFill)"
-                />
+              <AreaChart data={series} margin={{ top: 6, right: 8, bottom: 0, left: -20 }}>
+                <GradientDefs ids={[{ id: 'players', color: VIZ[0], from: 0.45 }]} />
+                <CartesianGrid {...gridProps} />
+                <XAxis dataKey="day" {...axisProps} minTickGap={22} />
+                <YAxis allowDecimals={false} {...axisProps} width={44} />
+                <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,.14)' }} />
+                <Area type="monotone" dataKey="players" name="Players" stroke={VIZ[0]} strokeWidth={2.5}
+                  fill="url(#fill-players)" activeDot={{ r: 4, strokeWidth: 0 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Panel>
 
-        <div className="card p-4">
-          <h2 className="text-sm font-bold text-ink mb-3">Games and prizes</h2>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={series} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e7ee" vertical={false} />
-                <XAxis dataKey="day" {...chartAxis} />
-                <YAxis allowDecimals={false} {...chartAxis} />
-                <Tooltip />
-                <Line type="monotone" dataKey="games" stroke="#b3122b" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="prizes" stroke="#f0a202" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex gap-4 text-xs text-muted mt-2">
-            <span>
-              <span className="inline-block w-3 h-0.5 bg-brand-accent align-middle mr-1" /> games started
-            </span>
-            <span>
-              <span className="inline-block w-3 h-0.5 bg-gold align-middle mr-1" /> prizes won
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-4">
-        <div className="card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-ink">Right now</h2>
-            <Link to="/live" className="text-xs font-semibold text-brand hover:underline">
-              Live monitoring →
-            </Link>
-          </div>
-          <dl className="grid grid-cols-2 gap-y-2 text-sm">
-            {[
-              ['Games running', live.counts.games_running],
-              ['Rooms waiting to start', live.counts.games_in_lobby],
-              ['Players in a game', live.counts.players_in_game],
-              ['Players waiting', live.counts.players_waiting],
-              ['Active in last 5 min', live.counts.active_5m],
-              ['Said “hi” in last hour', live.counts.said_hi_1h],
-              ['Messages sent (1h)', live.counts.sent_1h],
-              ['Open support tickets', live.counts.tickets_open],
-            ].map(([label, value]) => (
-              <div key={label} className="contents">
-                <dt className="text-muted">{label}</dt>
-                <dd className="font-bold text-right pr-2">{num(value)}</dd>
+        <Panel title="Right now" actions={
+          <Link to="/live" className="text-xs font-semibold text-gold hover:underline">Live →</Link>
+        }>
+          <dl className="divide-y divide-line">
+            {rightNow.map(([label, value, tone]) => (
+              <div key={label} className="flex items-center justify-between py-[9px]">
+                <dt className="text-[13px] text-muted">{label}</dt>
+                <dd className={`font-bold nums ${tone}`}>{num(value)}</dd>
               </div>
             ))}
           </dl>
-        </div>
+        </Panel>
+      </div>
 
-        <div className="card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-ink">This week vs last</h2>
-            <Link to="/analytics" className="text-xs font-semibold text-brand hover:underline">
-              Analytics →
-            </Link>
+      <div className="grid xl:grid-cols-2 gap-4 mb-4">
+        <Panel title="Games and prizes" subtitle="The gap is games that ended with no winner">
+          <div className="h-60">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={series} margin={{ top: 6, right: 8, bottom: 0, left: -20 }}>
+                <CartesianGrid {...gridProps} />
+                <XAxis dataKey="day" {...axisProps} minTickGap={22} />
+                <YAxis allowDecimals={false} {...axisProps} width={44} />
+                <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,.14)' }} />
+                <Line type="monotone" dataKey="games" name="Games started" stroke={VIZ[1]}
+                  strokeWidth={2.5} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+                <Line type="monotone" dataKey="prizes" name="Prizes won" stroke={VIZ[2]}
+                  strokeWidth={2.5} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-          <div className="space-y-2">
-            {comparisons.weekly.map((row) => (
-              <div key={row.metric} className="flex items-center justify-between text-sm">
-                <span className="text-muted">{row.metric}</span>
-                <span className="flex items-center gap-2">
-                  <span className="font-bold">{num(row.now)}</span>
-                  <span className="text-xs text-muted">from {num(row.before)}</span>
-                  {row.changePct !== null && (
-                    <span
-                      className={`pill ${row.changePct > 0 ? 'bg-good/10 text-good' : row.changePct < 0 ? 'bg-red-100 text-red-700' : 'bg-line/60 text-muted'}`}
-                    >
-                      {row.changePct > 0 ? '▲' : row.changePct < 0 ? '▼' : '—'}
-                      {Math.abs(row.changePct)}%
-                    </span>
-                  )}
-                </span>
-              </div>
+          <Legend items={[
+            { label: 'Games started', color: VIZ[1] },
+            { label: 'Prizes won', color: VIZ[2] },
+          ]} />
+        </Panel>
+
+        <Panel title="New players per day" subtitle="How fast the base is growing">
+          <div className="h-60">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={series} margin={{ top: 6, right: 8, bottom: 0, left: -20 }}>
+                <CartesianGrid {...gridProps} />
+                <XAxis dataKey="day" {...axisProps} minTickGap={22} />
+                <YAxis allowDecimals={false} {...axisProps} width={44} />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,.04)' }} />
+                <Bar dataKey="joined" name="New players" radius={[4, 4, 0, 0]} maxBarSize={22}>
+                  {/* The most recent day is picked out, because "is today good?"
+                      is the question this chart is actually asked. */}
+                  {series.map((_, i) => (
+                    <Cell key={i} fill={i === series.length - 1 ? VIZ[0] : 'rgba(245,184,61,.32)'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="grid xl:grid-cols-2 gap-4">
+        {funnel?.length > 0 && (
+          <Panel title="From first message to a prize" subtitle="Last 30 days"
+            actions={<Link to="/analytics" className="text-xs font-semibold text-gold hover:underline">Analytics →</Link>}>
+            {funnel.map((step, i) => (
+              <BarRow key={step.label} index={i} label={step.label} value={step.value} max={funnelMax}
+                color={VIZ[i % VIZ.length]}
+                hint={funnelMax > 0 ? `${Math.round((step.value / funnelMax) * 100)}%` : null} />
             ))}
+          </Panel>
+        )}
+
+        <Panel title="This week vs last">
+          <div className="space-y-1">
+            {comparisons.weekly.map((row) => {
+              const up = row.changePct > 0;
+              const down = row.changePct < 0;
+              return (
+                <div key={row.metric} className="flex items-center justify-between py-2 border-b border-line last:border-0">
+                  <span className="text-[13px] text-muted">{row.metric}</span>
+                  <span className="flex items-center gap-2.5">
+                    <span className="font-bold nums text-ink">{num(row.now)}</span>
+                    <span className="text-[11px] text-faint nums">from {num(row.before)}</span>
+                    {row.changePct !== null ? (
+                      <span className={`pill ${
+                        up ? 'bg-good/12 text-good border-good/25'
+                          : down ? 'bg-bad/12 text-bad border-bad/25'
+                          : 'bg-white/5 text-muted border-line'
+                      }`}>
+                        {up ? '↑' : down ? '↓' : '—'} {Math.abs(row.changePct)}%
+                      </span>
+                    ) : (
+                      // Nothing last week to divide by. Saying "new" is honest;
+                      // showing 0% or ∞ would not be.
+                      <span className="pill bg-viz-4/12 text-viz-4 border-viz-4/25">new</span>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-          <p className="text-[11px] text-muted mt-4">
-            Rollups fresh to {overview.metricsFreshTo ? when(overview.metricsFreshTo) : 'never'}
-          </p>
-        </div>
+        </Panel>
       </div>
     </Page>
   );

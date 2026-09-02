@@ -60,7 +60,7 @@ function Thread({ id }) {
         </>
       }
     >
-      <div className="card p-4 max-h-[70vh] overflow-y-auto bg-[#f6f3ef]">
+      <div className="card p-4 max-h-[70vh] overflow-y-auto bg-bg">
         {messages.length === 0 ? (
           <Empty>No messages yet.</Empty>
         ) : (
@@ -71,7 +71,7 @@ function Thread({ id }) {
                 <div key={i} className={`flex ${inbound ? 'justify-start' : 'justify-end'}`}>
                   <div
                     className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm whitespace-pre-wrap shadow-sm ${
-                      inbound ? 'bg-white' : 'bg-brand text-white'
+                      inbound ? 'bg-surface' : 'bg-brand text-white'
                     }`}
                   >
                     {bodyText(m.body) || <span className="opacity-60">[{m.kind}]</span>}
@@ -132,14 +132,14 @@ function ConversationList({ filter, setFilter }) {
           {data.map((c) => (
             <tr key={c.id} className="hover:bg-line/20">
               <td className="td font-semibold">
-                <Link to={`/conversations/${c.id}`} className="text-brand hover:underline">
+                <Link to={`/conversations/${c.id}`} className="text-gold hover:underline">
                   {c.display_name || 'Unnamed'}
                 </Link>
               </td>
               <td className="td text-muted">{maskWa(c.wa_id)}</td>
               <td className="td">
                 <span className="flex gap-1">
-                  {c.has_hosted ? <Badge value="host" tone="bg-brand/10 text-brand" /> : null}
+                  {c.has_hosted ? <Badge value="host" tone="bg-brand/10 text-gold" /> : null}
                   {c.in_game ? <Badge value="in game" tone="bg-good/10 text-good" /> : null}
                   {!c.has_hosted && !c.in_game ? (
                     <span className="text-muted text-xs">player</span>

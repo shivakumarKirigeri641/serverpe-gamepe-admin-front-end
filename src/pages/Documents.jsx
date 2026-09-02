@@ -126,7 +126,7 @@ export default function Documents() {
             <td className="td">
               <Badge
                 value={d.kind}
-                tone={d.kind === 'invoice' ? 'bg-gold/15 text-[#7a5b00]' : 'bg-brand/10 text-brand'}
+                tone={d.kind === 'invoice' ? 'bg-gold/15 text-[#7a5b00]' : 'bg-brand/10 text-gold'}
               />
             </td>
             <td className="td text-sm">

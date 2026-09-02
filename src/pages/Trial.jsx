@@ -19,7 +19,7 @@ import { api, num, when } from '../lib/api.js';
 import { ErrorBox, Loading, Page, REFRESH_MS, Stat, Table, usePolling } from '../components/ui.jsx';
 
 /** A small inline bar chart — enough to see a flat line without a chart library. */
-function Sparkline({ rows, field, color = '#7d0f22' }) {
+function Sparkline({ rows, field, color = '#ff4d6d' }) {
   const max = Math.max(...rows.map((r) => Number(r[field] || 0)), 1);
 
   return (
@@ -32,7 +32,7 @@ function Sparkline({ rows, field, color = '#7d0f22' }) {
               className="w-full rounded-t transition-all"
               style={{
                 height: `${Math.max((v / max) * 100, v > 0 ? 6 : 2)}%`,
-                background: v > 0 ? color : '#e2e7ee',
+                background: v > 0 ? color : 'rgba(255,255,255,.12)',
               }}
             />
           </div>
@@ -159,11 +159,11 @@ export default function Trial() {
     >
       <div
         className={`card p-5 mb-5 border-2 ${
-          isOver ? 'border-red-300 bg-red-50/40' : 'border-brand/30 bg-brand/5'
+          isOver ? 'border-red-300 bg-bad/10/40' : 'border-brand/30 bg-brand/5'
         }`}
       >
         <div className="flex flex-wrap items-baseline gap-x-3">
-          <span className="text-4xl font-extrabold text-brand">{num(counts.signups)}</span>
+          <span className="text-4xl font-extrabold text-gold">{num(counts.signups)}</span>
           <span className="font-bold">people have messaged MastiPe</span>
         </div>
         <p className="text-sm text-muted mt-2 leading-relaxed">
@@ -197,9 +197,9 @@ export default function Trial() {
 
       <div className="grid lg:grid-cols-3 gap-4 mb-5">
         {[
-          ['New signups per day', 'signups', '#7d0f22'],
-          ['People playing per day', 'played', '#1f9d55'],
-          ['Games per day', 'games', '#f0a202'],
+          ['New signups per day', 'signups', '#ff4d6d'],
+          ['People playing per day', 'played', '#2dd4bf'],
+          ['Games per day', 'games', '#f5b83d'],
         ].map(([label, field, color]) => (
           <div key={field} className="card p-4">
             <h2 className="text-sm font-bold mb-3">{label}</h2>

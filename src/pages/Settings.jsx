@@ -260,8 +260,8 @@ function DangerZone() {
   };
 
   return (
-    <div className="card p-5 border-2 border-red-200 bg-red-50/40">
-      <h2 className="text-sm font-bold text-red-700">Danger zone — clean up the database</h2>
+    <div className="card p-5 border-2 border-bad/30 bg-bad/10/40">
+      <h2 className="text-sm font-bold text-bad">Danger zone — clean up the database</h2>
       <p className="text-sm text-muted mt-2 leading-relaxed">
         Deletes <strong>every player and game record</strong>: players, messages, events, games,
         consents, wallets, blocks, feedback, tickets, metrics and admin sessions — and clears the
@@ -273,7 +273,7 @@ function DangerZone() {
       </p>
 
       {done && (
-        <div className="mt-4 rounded-xl bg-white border border-line p-3 text-sm">
+        <div className="mt-4 rounded-xl bg-surface border border-line p-3 text-sm">
           <strong className="text-good">Done.</strong> {num(done.rowsDeleted)} rows removed from{' '}
           {done.tablesCleared} tables, {num(done.redisKeysDeleted)} cache keys cleared
           {done.drawJobsDropped ? `, ${done.drawJobsDropped} queued draws dropped` : ''}. Kept:{' '}
@@ -282,7 +282,7 @@ function DangerZone() {
       )}
 
       {!open ? (
-        <button className="btn-sec mt-4 border-red-300 text-red-700" onClick={load}>
+        <button className="btn-sec mt-4 border-red-300 text-bad" onClick={load}>
           Clean up database…
         </button>
       ) : (
@@ -303,7 +303,7 @@ function DangerZone() {
           </p>
 
           <label className="lbl mt-4">
-            Type <span className="font-mono text-red-700">{PURGE_PHRASE}</span> to confirm
+            Type <span className="font-mono text-bad">{PURGE_PHRASE}</span> to confirm
           </label>
           <input
             className="input font-mono"
@@ -375,7 +375,7 @@ export default function Settings() {
                     {Object.entries(counts).map(([k, v]) => (
                       <div key={k} className="flex justify-between">
                         <span>{k}</span>
-                        <span className={v > 0 && k === 'failed' ? 'text-red-600 font-bold' : ''}>
+                        <span className={v > 0 && k === 'failed' ? 'text-bad font-bold' : ''}>
                           {num(v)}
                         </span>
                       </div>
@@ -418,7 +418,7 @@ export default function Settings() {
             <td className="td">
               <Badge
                 value={s.active ? 'active' : 'expired'}
-                tone={s.active ? 'bg-good/10 text-good' : 'bg-line/60 text-muted'}
+                tone={s.active ? 'bg-good/10 text-good' : 'bg-white/5 text-muted'}
               />
             </td>
           </tr>

@@ -4,7 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#0b0910" />
     <title>MastiPe Admin</title>
+
+    <!-- Preconnect first: the font is the only external request the panel
+         makes, and it blocks first paint of every number on the screen. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Painted before React mounts, so a slow bundle shows the panel's own
+         dark ground rather than a white flash. -->
+    <style>
+      html, body, #root { height: 100%; }
+      body { margin: 0; background: #0b0910; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

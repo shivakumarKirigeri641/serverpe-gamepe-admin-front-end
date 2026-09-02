@@ -64,11 +64,11 @@ function GameDetail({ id }) {
               return (
                 <tr key={p.player_id}>
                   <td className="td font-semibold">
-                    <Link to={`/players/${p.player_id}`} className="text-brand hover:underline">
+                    <Link to={`/players/${p.player_id}`} className="text-gold hover:underline">
                       {p.display_name || 'Unnamed'}
                     </Link>
                     {game.host_player_id === p.player_id && (
-                      <Badge value="host" tone="bg-brand/10 text-brand ml-2" />
+                      <Badge value="host" tone="bg-brand/10 text-gold ml-2" />
                     )}
                   </td>
                   <td className="td text-muted">{maskWa(p.wa_id)}</td>
@@ -91,7 +91,7 @@ function GameDetail({ id }) {
                 <td className="td">
                   <Badge
                     value={c.status}
-                    tone={c.status === 'awarded' ? 'bg-good/10 text-good' : 'bg-red-100 text-red-700'}
+                    tone={c.status === 'awarded' ? 'bg-good/10 text-good' : 'bg-bad/12 text-bad'}
                   />
                   {c.reason && <div className="text-[11px] text-muted mt-1">{c.reason}</div>}
                 </td>
@@ -166,7 +166,7 @@ function GameList() {
           {data.map((g) => (
             <tr key={g.id} className="hover:bg-line/20">
               <td className="td font-mono font-bold">
-                <Link to={`/games/${g.id}`} className="text-brand hover:underline">
+                <Link to={`/games/${g.id}`} className="text-gold hover:underline">
                   {g.room_code}
                 </Link>
               </td>

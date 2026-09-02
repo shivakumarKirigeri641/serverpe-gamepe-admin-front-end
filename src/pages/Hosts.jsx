@@ -116,7 +116,7 @@ function HostList({ onOpen }) {
             </td>
             <td className="px-4 py-3 tabular-nums">
               {n(h.games_as_guest) > 0 ? (
-                <Badge value={`${num(h.games_as_guest)} as guest`} tone="bg-brand/10 text-brand" />
+                <Badge value={`${num(h.games_as_guest)} as guest`} tone="bg-brand/10 text-gold" />
               ) : (
                 <span className="text-muted text-xs">host only</span>
               )}
@@ -151,8 +151,8 @@ function GameTimeline({ gameId }) {
               row.kind === 'claim'
                 ? 'bg-good/10 text-good'
                 : row.kind === 'join'
-                  ? 'bg-brand/10 text-brand'
-                  : 'bg-line/60 text-muted'
+                  ? 'bg-brand/10 text-gold'
+                  : 'bg-white/5 text-muted'
             }
           />
           <span>
@@ -181,7 +181,7 @@ function HostDetail({ id, onBack }) {
       title={host.display_name || 'Unnamed host'}
       subtitle={`${fullWa(host.wa_id)} · joined ${when(host.created_at)} · last seen ${ago(host.last_seen_at)}`}
       actions={
-        <button onClick={onBack} className="text-sm font-bold text-brand hover:underline">
+        <button onClick={onBack} className="text-sm font-bold text-gold hover:underline">
           ← All hosts
         </button>
       }
@@ -247,7 +247,7 @@ function HostDetail({ id, onBack }) {
             <td className="px-4 py-3 text-right">
               <button
                 onClick={() => setOpenGame(openGame === g.id ? null : g.id)}
-                className="text-xs font-bold text-brand hover:underline"
+                className="text-xs font-bold text-gold hover:underline"
               >
                 {openGame === g.id ? 'Hide' : 'Every step'}
               </button>

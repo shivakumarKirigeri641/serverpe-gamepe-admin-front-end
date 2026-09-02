@@ -25,9 +25,9 @@ const MODES = [
 ];
 
 const MODE_TONE = {
-  instant: 'bg-red-100 text-red-700',
-  digest: 'bg-brand/10 text-brand',
-  off: 'bg-line/60 text-muted',
+  instant: 'bg-bad/12 text-bad',
+  digest: 'bg-brand/10 text-gold',
+  off: 'bg-white/5 text-muted',
 };
 
 function ModePicker({ value, onChange, busy }) {
@@ -40,7 +40,7 @@ function ModePicker({ value, onChange, busy }) {
           disabled={busy}
           onClick={() => onChange(mode)}
           className={`px-3 py-1.5 text-xs font-bold transition disabled:opacity-50
-            ${value === mode ? 'bg-brand text-white' : 'bg-white text-ink hover:bg-line/40'}`}
+            ${value === mode ? 'bg-brand text-white' : 'bg-surface text-ink hover:bg-white/5'}`}
         >
           {label}
         </button>
@@ -130,7 +130,7 @@ export default function Notifications() {
       {result && (
         <div
           className={`card p-4 mb-4 border-2 ${
-            result.value.ok === false ? 'border-red-300 bg-red-50/50' : 'border-good/40 bg-good/5'
+            result.value.ok === false ? 'border-red-300 bg-bad/10/50' : 'border-good/40 bg-good/5'
           }`}
         >
           {result.label === 'verify' ? (
@@ -139,7 +139,7 @@ export default function Notifications() {
                 Connected to the mail server and authenticated. Nothing was sent.
               </strong>
             ) : (
-              <span className="text-red-700">
+              <span className="text-bad">
                 <strong>Could not connect:</strong> {result.value.error}
               </span>
             )
@@ -149,7 +149,7 @@ export default function Notifications() {
               {result.value.events === 1 ? '' : 's'} included.
             </strong>
           ) : (
-            <span className="text-red-700">
+            <span className="text-bad">
               <strong>Not sent:</strong> {result.value.reason}
             </span>
           )}
@@ -269,7 +269,7 @@ export default function Notifications() {
                   {l.ok ? (
                     <span className="text-good text-xs font-bold">sent</span>
                   ) : (
-                    <span className="text-red-700 text-xs font-bold" title={l.error}>
+                    <span className="text-bad text-xs font-bold" title={l.error}>
                       failed
                     </span>
                   )}

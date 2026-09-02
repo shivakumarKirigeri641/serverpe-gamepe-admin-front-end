@@ -2,26 +2,144 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * The whole panel's look lives in these component classes. Every page already
+ * uses .card / .th / .td / .pill / .btn-*, so restyling here re-skins all
+ * eighteen screens at once rather than editing each one.
+ */
+
 @layer base {
-  html { -webkit-font-smoothing: antialiased; }
-  body { @apply bg-[#f6f3ef] text-ink; }
+  html {
+    -webkit-font-smoothing: antialiased;
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-bg text-ink;
+    /* Fixed so the glow stays put while the page scrolls - a gradient that
+       scrolls with the content reads as a coloured band, not as lighting. */
+    background-image: theme('backgroundImage.aurora');
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  ::selection { background: rgba(245, 184, 61, .28); }
+
+  /* The default scrollbar is a bright slab on a dark page. */
+  * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.14) transparent; }
+  *::-webkit-scrollbar { width: 9px; height: 9px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,.12);
+    border-radius: 99px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.22); background-clip: content-box; }
+
+  :focus-visible { outline: 2px solid theme('colors.gold.DEFAULT'); outline-offset: 2px; }
 }
 
 @layer components {
-  .card    { @apply bg-white rounded-2xl shadow-card border border-line/60; }
-  .btn     { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5
-                    text-sm font-semibold transition active:scale-[.98] disabled:opacity-50; }
-  .btn-pri { @apply btn bg-brand text-white hover:bg-brand-light; }
-  .btn-sec { @apply btn bg-white border border-line text-ink hover:bg-line/40; }
-  .input   { @apply w-full rounded-xl border-2 border-line px-3.5 py-2.5 text-sm
-                    outline-none focus:border-brand transition; }
-  .lbl     { @apply block text-[11px] font-bold uppercase tracking-wide text-muted mb-1; }
-  .th      { @apply text-left text-[11px] font-bold uppercase tracking-wide text-muted
-                    px-3 py-2.5 bg-line/30 whitespace-nowrap; }
-  .td      { @apply px-3 py-2.5 text-sm border-t border-line/70 align-top; }
-  .pill    { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1
-                    text-[11px] font-bold; }
-  .nav-link { @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold
-                     text-white/70 hover:text-white hover:bg-white/10 transition; }
-  .nav-link-active { @apply bg-white/15 text-white; }
+  /* --- surfaces ---------------------------------------------------------- */
+
+  .card {
+    @apply relative rounded-2xl border border-line shadow-card;
+    background: rgba(255,255,255,.035);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+
+  /* A one-pixel highlight along the top edge. It is what stops a flat
+     translucent panel from looking like a grey rectangle. */
+  .card::before {
+    content: '';
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-2xl;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+  }
+
+  .card-hover { @apply transition duration-200 hover:border-white/15 hover:shadow-lift hover:-translate-y-0.5; }
+
+  /* --- controls ---------------------------------------------------------- */
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5
+           text-sm font-semibold transition active:scale-[.98]
+           disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .btn-pri {
+    @apply btn text-bg-deep;
+    background: linear-gradient(135deg, theme('colors.gold.DEFAULT'), theme('colors.gold.deep'));
+    box-shadow: 0 6px 20px rgba(245,184,61,.22);
+  }
+  .btn-pri:hover { filter: brightness(1.08); }
+  .btn-sec { @apply btn border border-line text-ink; background: rgba(255,255,255,.045); }
+  .btn-sec:hover { background: rgba(255,255,255,.085); }
+  .btn-danger { @apply btn border border-bad/40 bg-bad/10 text-bad hover:bg-bad/20; }
+
+  .input {
+    @apply w-full rounded-xl border border-line bg-black/25 px-3.5 py-2.5 text-sm text-ink
+           placeholder:text-faint outline-none transition;
+  }
+  .input:focus { @apply border-gold/70 bg-black/40; box-shadow: 0 0 0 3px rgba(245,184,61,.12); }
+
+  .lbl { @apply block text-[11px] font-bold uppercase tracking-[.08em] text-muted mb-1.5; }
+
+  /* --- tables ------------------------------------------------------------ */
+
+  .th {
+    @apply sticky top-0 z-10 text-left text-[10.5px] font-bold uppercase tracking-[.09em]
+           text-muted px-3.5 py-3 whitespace-nowrap bg-bg-raise/90 backdrop-blur;
+  }
+  .td { @apply px-3.5 py-3 text-sm border-t border-line/70 align-top; }
+  .row-link { @apply transition hover:bg-white/[.045] cursor-pointer; }
+
+  /* --- bits -------------------------------------------------------------- */
+
+  .pill {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1
+           text-[11px] font-bold border border-transparent;
+  }
+
+  .nav-link {
+    @apply relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-medium
+           text-muted transition-all duration-150 hover:text-ink hover:bg-white/[.055];
+  }
+  .nav-link-active { @apply bg-white/[.08] text-ink font-semibold; }
+
+  /* The active marker is a glowing bar, drawn rather than shifted into place,
+     so switching pages does not nudge the label. */
+  .nav-link-active::before {
+    content: '';
+    @apply absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full;
+    background: theme('colors.gold.DEFAULT');
+    box-shadow: 0 0 12px theme('colors.gold.DEFAULT');
+  }
+
+  .stat-value {
+    @apply text-[28px] leading-none font-extrabold tracking-tight;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Loading placeholder that suggests the shape of what is coming. */
+  .skeleton { @apply relative overflow-hidden rounded-lg bg-white/[.05]; }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent);
+  }
 }
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(100deg, theme('colors.gold.DEFAULT'), #ffe6a8 55%, theme('colors.brand.glow'));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .nums { font-variant-numeric: tabular-nums; }
+}
+
+/* Recharts paints a white focus rectangle on its wrappers when tabbed into. */
+.recharts-wrapper:focus,
+.recharts-surface:focus { outline: none; }

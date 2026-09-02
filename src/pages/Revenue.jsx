@@ -11,9 +11,10 @@
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { api, inr, num } from '../lib/api.js';
-import { ErrorBox, Loading, Page, Stat, Table, usePolling, REFRESH_MS } from '../components/ui.jsx';
+import { ErrorBox, Loading, Page, Stat, Table, usePolling, REFRESH_MS , axisProps, gridProps, ChartTooltip} from '../components/ui.jsx';
 
-const axis = { stroke: '#6b7684', fontSize: 11, tickLine: false, axisLine: false };
+// Shared with every other chart in the panel, so no two look subtly different.
+const axis = axisProps;
 const RANGES = [7, 30, 90];
 
 export default function Revenue() {
@@ -82,13 +83,13 @@ export default function Revenue() {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chart} margin={{ top: 4, right: 8, bottom: 0, left: -10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e7ee" vertical={false} />
+              <CartesianGrid {...gridProps} />
               <XAxis dataKey="day" {...axis} />
               <YAxis {...axis} />
               <Tooltip formatter={(v) => `₹${Number(v).toFixed(2)}`} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar name="Net" dataKey="net" stackId="a" fill="#7d0f22" radius={[0, 0, 0, 0]} />
-              <Bar name="GST" dataKey="gst" stackId="a" fill="#f0a202" radius={[4, 4, 0, 0]} />
+              <Bar name="Net" dataKey="net" stackId="a" fill="#ff4d6d" radius={[0, 0, 0, 0]} />
+              <Bar name="GST" dataKey="gst" stackId="a" fill="#f5b83d" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

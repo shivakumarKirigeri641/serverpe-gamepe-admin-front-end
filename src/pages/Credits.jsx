@@ -51,9 +51,9 @@ function AdjustDialog({ player, onClose, onDone }) {
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
-        className="bg-white rounded-2xl shadow-card w-full max-w-md p-6"
+        className="bg-surface rounded-2xl shadow-card w-full max-w-md p-6"
       >
-        <h2 className="text-lg font-bold text-brand">Adjust credits</h2>
+        <h2 className="text-lg font-bold text-gold">Adjust credits</h2>
         <p className="text-sm text-muted mt-1">
           {player.display_name || 'Player'} · {maskWa(player.wa_id)} · currently{' '}
           {inr(player.balance_paise)}
@@ -99,7 +99,7 @@ function AdjustDialog({ player, onClose, onDone }) {
           Required. In six months this note is the only thing that explains the movement.
         </p>
 
-        {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
+        {error && <p className="text-sm text-bad mt-3">{error}</p>}
 
         <div className="flex gap-2 mt-6">
           <button type="button" className="btn-sec flex-1" onClick={onClose}>
@@ -144,9 +144,9 @@ function FreeGameDialog({ player, onClose, onDone }) {
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
-        className="bg-white rounded-2xl shadow-card w-full max-w-md p-6"
+        className="bg-surface rounded-2xl shadow-card w-full max-w-md p-6"
       >
-        <h2 className="text-lg font-bold text-brand">Give free games</h2>
+        <h2 className="text-lg font-bold text-gold">Give free games</h2>
         <p className="text-sm text-muted mt-1">
           {player.display_name || 'Player'} - {maskWa(player.wa_id)} - currently{' '}
           {num(player.free_games || 0)} free
@@ -191,7 +191,7 @@ function FreeGameDialog({ player, onClose, onDone }) {
           Tag a promotion so you can measure it later.
         </p>
 
-        {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
+        {error && <p className="text-sm text-bad mt-3">{error}</p>}
 
         <div className="flex gap-2 mt-6">
           <button type="button" className="btn-sec flex-1" onClick={onClose}>
@@ -256,7 +256,7 @@ export default function Credits() {
             </td>
             <td className="td">
               {w.free_games > 0 ? (
-                <span className="pill bg-gold/15 text-[#8a5d00]">{num(w.free_games)} free</span>
+                <span className="pill bg-gold/15 text-gold">{num(w.free_games)} free</span>
               ) : (
                 <span className="text-muted">-</span>
               )}
