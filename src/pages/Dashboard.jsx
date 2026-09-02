@@ -68,22 +68,15 @@ export default function Dashboard() {
     : [];
   const funnelMax = funnelRows.length ? Math.max(...funnelRows.map((s) => s.value)) : 0;
 
-  const rightNow = [
-    ['Games running', live.counts.games_running, 'text-good'],
-    ['Rooms waiting', live.counts.games_in_lobby, 'text-gold'],
-    ['Players in a game', live.counts.players_in_game, 'text-ink'],
-    ['Players waiting', live.counts.players_waiting, 'text-ink'],
-    ['Active last 5 min', live.counts.active_5m, 'text-viz-3'],
-    ['Messages in (1h)', live.counts.said_hi_1h, 'text-ink'],
-    ['Messages out (1h)', live.counts.sent_1h, 'text-ink'],
-    ['Open tickets', live.counts.tickets_open, 'text-ink'],
-  ];
-
   return (
     <Page
       title="Dashboard"
-      subtitle="Refreshes every 10 seconds"
-      actions={<LiveDot label={`${live.counts.games_running} running now`} />}
+      subtitle="Refreshes every 10 seconds — for live state, see Live monitoring"
+      actions={
+        <Link to="/live" className="no-underline">
+          <LiveDot label={`${live.counts.games_running} running now · Live \u2192`} />
+        </Link>
+      }
     >
       {/* Today, against yesterday */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
@@ -113,7 +106,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid xl:grid-cols-3 gap-4 mb-4">
-        <Panel className="xl:col-span-2" title="Active players" subtitle="Distinct players seen per day, last 30 days">
+        <Panel className="xl:col-span-3" title="Active players" subtitle="Distinct players seen per day, last 30 days">
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={series} margin={{ top: 6, right: 8, bottom: 0, left: -20 }}>
@@ -129,18 +122,6 @@ export default function Dashboard() {
           </div>
         </Panel>
 
-        <Panel title="Right now" actions={
-          <Link to="/live" className="text-xs font-semibold text-gold hover:underline">Live →</Link>
-        }>
-          <dl className="divide-y divide-line">
-            {rightNow.map(([label, value, tone]) => (
-              <div key={label} className="flex items-center justify-between py-[9px]">
-                <dt className="text-[13px] text-muted">{label}</dt>
-                <dd className={`font-bold nums ${tone}`}>{num(value)}</dd>
-              </div>
-            ))}
-          </dl>
-        </Panel>
       </div>
 
       <div className="grid xl:grid-cols-2 gap-4 mb-4">

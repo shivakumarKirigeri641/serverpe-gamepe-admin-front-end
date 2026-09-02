@@ -9,6 +9,7 @@
  */
 
 import { ago, api, maskWa, num, timeOnly } from '../lib/api.js';
+import LiveCharts from '../components/LiveCharts.jsx';
 import { Badge, Empty, ErrorBox, LiveDot, Loading, Page, Stat, Table, usePolling, LIVE_REFRESH_MS } from '../components/ui.jsx';
 
 const EVENT_LABELS = {
@@ -89,19 +90,83 @@ export default function Live() {
 
   return (
     <Page title="Live monitoring" subtitle="Refreshes every second" actions={<LiveDot />}>
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+      {/* Every "right now" number the panel has, gathered here.
+          These used to be split across the Dashboard and Settings, both of
+          which refresh every ten seconds - so the two screens could disagree
+          with each other, and neither was current. Live state belongs on the
+          live screen. */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
         <Stat index={0} label="Games running" value={num(c.games_running)} />
-        <Stat index={1} label="Waiting to start" value={num(c.games_in_lobby)} tone="ink" />
+        <Stat index={1} label="Waiting to start" value={num(c.games_in_lobby)} tone="gold" />
         <Stat index={2} label="Players in game" value={num(c.players_in_game)} tone="ink" />
-        <Stat index={3} label="Active (5 min)" value={num(c.active_5m)} tone="ink" />
+        <Stat index={3} label="Players waiting" value={num(c.players_waiting)} tone="ink" />
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <Stat index={4} label="Active (5 min)" value={num(c.active_5m)} tone="teal" />
+        <Stat index={5} label="Received last hour" value={num(c.said_hi_1h)} tone="ink" />
         <Stat
-          index={4}
+          index={6}
           label="Sent last hour"
           value={num(c.sent_1h)}
           sub={c.failed_1h ? `${num(c.failed_1h)} failed` : 'none failed'}
-          tone="ink"
+          tone={c.failed_1h ? 'crimson' : 'ink'}
+        />
+        <Stat
+          index={7}
+          label="Open tickets"
+          value={num(c.tickets_open)}
+          tone={c.tickets_open ? 'gold' : 'ink'}
         />
       </div>
+
+      {/*
+        Scheduler health. This is the one strip that genuinely needs a
+        one-second refresh, and the reason the whole page runs at that rate.
+
+        "Due now" counts running games whose next draw time has already
+        passed. A tick should clear that within a second, so a number that
+        keeps sitting above zero is the platform's clearest early warning:
+        draws are running late and every player is looking at a board that has
+        stopped moving. It was previously buried under Settings, refreshed
+        every ten seconds, which is slower than the thing it measures.
+      */}
+      <div className="card p-4 mb-6">
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="text-sm font-bold text-ink">Draw scheduler</h2>
+          <span className="text-[11px] text-faint">the numbers going out to players</span>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <div className={`text-2xl font-extrabold nums ${c.draws_due_now ? 'text-bad' : 'text-good'}`}>
+              {num(c.draws_due_now)}
+            </div>
+            <div className="text-[11px] text-muted mt-0.5">
+              due now
+              {c.draws_due_now ? ' — draws are behind' : ' — keeping up'}
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl font-extrabold nums text-ink">{num(c.drawn_last_minute)}</div>
+            <div className="text-[11px] text-muted mt-0.5">numbers called this minute</div>
+          </div>
+          <div>
+            <div className="text-2xl font-extrabold nums text-ink">{num(c.drawn_last_hour)}</div>
+            <div className="text-[11px] text-muted mt-0.5">called this hour</div>
+          </div>
+          <div>
+            <div className="text-2xl font-extrabold nums text-ink">
+              {num(snapshot.games.reduce((t, g) => t + (g.watchers || 0), 0))}
+            </div>
+            <div className="text-[11px] text-muted mt-0.5">boards streaming live</div>
+          </div>
+        </div>
+      </div>
+
+      <LiveCharts
+        counts={c}
+        watchers={snapshot.games.reduce((t, g) => t + (g.watchers || 0), 0)}
+      />
 
       <h2 className="text-sm font-bold text-ink mb-2">Open rooms</h2>
       {snapshot.games.length === 0 ? (

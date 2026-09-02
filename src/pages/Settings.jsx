@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, num, when } from '../lib/api.js';
 import { Badge, ErrorBox, Loading, Page, Table, usePolling } from '../components/ui.jsx';
 import Maintenance from '../components/Maintenance.jsx';
@@ -376,9 +377,14 @@ export default function Settings() {
 
         <div className="space-y-4">
           <div className="card p-4">
-            <h2 className="text-sm font-bold mb-3">Queues</h2>
+            <h2 className="text-sm font-bold mb-3">Delivery totals</h2>
+            {/* The draw counters that used to sit here - running games, draws
+                due, numbers called - moved to Live monitoring. They change by
+                the second and this page refreshes every ten, so they were
+                stale on arrival. What is left is cumulative and reads fine at
+                this cadence. */}
             <div className="grid grid-cols-2 gap-3 text-sm">
-              {Object.entries(data.queues).map(([name, counts]) => (
+              {Object.entries(data.queues).filter(([name]) => name !== 'draws').map(([name, counts]) => (
                 <div key={name}>
                   <div className="font-semibold capitalize mb-1">{name}</div>
                   <div className="text-xs text-muted space-y-0.5">
@@ -394,6 +400,10 @@ export default function Settings() {
                 </div>
               ))}
             </div>
+            <p className="text-[11px] text-faint mt-3">
+              Running games, draws due and numbers called are on{' '}
+              <Link to="/live" className="text-gold hover:underline">Live monitoring</Link>.
+            </p>
           </div>
 
           <div className="card p-4">
