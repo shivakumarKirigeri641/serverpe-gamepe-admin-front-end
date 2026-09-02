@@ -34,6 +34,43 @@ const EVENT_LABELS = {
   error: 'hit an error',
 };
 
+/**
+ * "Bengaluru, Karnataka" — or an honest dash.
+ *
+ * Location comes from the IP the board was opened from, so two states of
+ * "nothing" are worth telling apart and are rendered differently below: a
+ * player who has not opened their board yet (nothing to resolve), and one
+ * whose address did not resolve to a city (a datacentre IP, a VPN, a provider
+ * miss). Both show as unknown, neither is an error.
+ *
+ * Union territories arrive in the same field as states — Delhi, Puducherry and
+ * Chandigarh sit alongside Karnataka — so there is nothing to special-case.
+ */
+function placeOf(row) {
+  const bits = [row.city, row.region].filter(Boolean);
+  if (!bits.length) return null;
+  // "Bengaluru, Karnataka" reads better than repeating a city that IS the state.
+  return bits[0] === bits[1] ? bits[0] : bits.join(', ');
+}
+
+/** The location cell: place on top, address underneath for the rare dispute. */
+const Where = ({ row }) => {
+  const place = placeOf(row);
+  if (!place) {
+    return (
+      <span className="text-muted" title={row.board_open ? 'Address did not resolve to a city' : 'Has not opened their board yet'}>
+        {row.board_open ? 'unknown' : '—'}
+      </span>
+    );
+  }
+  return (
+    <span title="Approximate — resolved from the IP the board was opened from. On mobile data this is the carrier gateway.">
+      <span className="text-ink">{place}</span>
+      {row.ip && <span className="block text-[11px] text-muted font-mono">{row.ip}</span>}
+    </span>
+  );
+};
+
 export default function Live() {
   const { data, error, loading } = usePolling(
     async () => {
@@ -102,6 +139,18 @@ export default function Live() {
                 </div>
               </div>
 
+              {g.places && (
+                <div className="text-xs text-muted mt-3 flex gap-1.5">
+                  <span aria-hidden className="text-gold">◈</span>
+                  <span
+                    className="min-w-0"
+                    title="Approximate — resolved from the IP each board was opened from."
+                  >
+                    {g.places}
+                  </span>
+                </div>
+              )}
+
               {g.prizes_awarded > 0 && (
                 <div className="text-xs text-muted mt-3">{g.prizes_awarded} prize(s) already won</div>
               )}
@@ -112,7 +161,7 @@ export default function Live() {
 
       <h2 className="text-sm font-bold text-ink mb-2">Who is playing right now</h2>
       <div className="mb-6">
-        <Table head={['Player', 'Number', 'Room', 'Role', 'Answered', 'Last answer']}>
+        <Table head={['Player', 'Number', 'Room', 'Role', 'City / state', 'Device', 'Answered', 'Last answer']}>
           {players.map((p) => (
             <tr key={`${p.id}-${p.room_code}`}>
               <td className="td font-semibold">{p.display_name || '—'}</td>
@@ -120,6 +169,10 @@ export default function Live() {
               <td className="td font-mono">{p.room_code}</td>
               <td className="td">
                 {p.is_host ? <Badge value="host" tone="bg-brand/10 text-gold" /> : <span className="text-muted">player</span>}
+              </td>
+              <td className="td"><Where row={p} /></td>
+              <td className="td text-muted text-xs">
+                {[p.device_type, p.os, p.browser].filter(Boolean).join(' · ') || '—'}
               </td>
               <td className="td">{num(p.answered)}</td>
               <td className="td text-muted">{p.last_answer_at ? ago(p.last_answer_at) : '—'}</td>

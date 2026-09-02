@@ -21,6 +21,9 @@ import {
 } from 'recharts';
 import { api, num } from '../lib/api.js';
 import { ErrorBox, Loading, Page, Table, usePolling, REFRESH_MS , axisProps, gridProps, ChartTooltip} from '../components/ui.jsx';
+// Geography carries its own period control and its own slower poll, so it is
+// deliberately not folded into this page's fetch.
+import Geography from '../components/Geography.jsx';
 
 // Shared with every other chart in the panel, so no two look subtly different.
 const axis = axisProps;
@@ -102,6 +105,8 @@ export default function Analytics() {
         </div>
       }
     >
+      <Geography />
+
       <div className="grid lg:grid-cols-2 gap-4 mb-4">
         <div className="card p-4">
           <h2 className="text-sm font-bold mb-3">From “hi” to a prize</h2>
