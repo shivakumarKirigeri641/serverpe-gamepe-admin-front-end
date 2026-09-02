@@ -9,7 +9,7 @@
  */
 
 import { ago, api, maskWa, num, timeOnly } from '../lib/api.js';
-import { Badge, Empty, ErrorBox, LiveDot, Loading, Page, Stat, Table, usePolling, REFRESH_MS } from '../components/ui.jsx';
+import { Badge, Empty, ErrorBox, LiveDot, Loading, Page, Stat, Table, usePolling, LIVE_REFRESH_MS } from '../components/ui.jsx';
 
 const EVENT_LABELS = {
   'player.created': 'said hi for the first time',
@@ -77,7 +77,7 @@ export default function Live() {
       const [snapshot, players] = await Promise.all([api.get('/live'), api.get('/live/players')]);
       return { snapshot, players };
     },
-    REFRESH_MS,
+    LIVE_REFRESH_MS,
     [],
   );
 
@@ -88,7 +88,7 @@ export default function Live() {
   const c = snapshot.counts;
 
   return (
-    <Page title="Live monitoring" subtitle="Refreshes every 5 seconds" actions={<LiveDot />}>
+    <Page title="Live monitoring" subtitle="Refreshes every second" actions={<LiveDot />}>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
         <Stat index={0} label="Games running" value={num(c.games_running)} />
         <Stat index={1} label="Waiting to start" value={num(c.games_in_lobby)} tone="ink" />

@@ -335,6 +335,17 @@ export const LiveDot = ({ label }) => (
 export const REFRESH_MS = 10_000;
 
 /**
+ * For Live monitoring only.
+ *
+ * A number is called every twenty seconds, but the things this page is watched
+ * for — a player dropping, a room filling, a game stalling — happen between
+ * those, and a ten-second lag makes the page feel like a report rather than a
+ * window. Safe to run this fast because usePolling waits for each response
+ * before scheduling the next, and stops entirely while the tab is hidden.
+ */
+export const LIVE_REFRESH_MS = 1_000;
+
+/**
  * Re-runs `fn` on an interval, and immediately when the tab regains focus.
  *
  * Live screens go stale the moment a laptop sleeps; refreshing on focus means
@@ -350,6 +361,26 @@ export function usePolling(fn, intervalMs, deps = []) {
     let cancelled = false;
     let timer;
 
+    /**
+     * The next run is scheduled only once the previous one has finished.
+     *
+     * setInterval would fire on a fixed clock whether or not the last request
+     * came back. At the ten-second cadence most pages use that never mattered;
+     * at one second — which Live monitoring runs at — a query that takes
+     * longer than the interval would stack requests on top of each other until
+     * the panel was DDoSing its own API. This way the gap is always measured
+     * from the response, so a slow API just polls more slowly.
+     */
+    const schedule = () => {
+      if (cancelled || !intervalMs) return;
+      // A backgrounded tab is nobody watching. Chrome throttles its timers
+      // anyway; stopping outright means a panel left open overnight is not
+      // still asking every second by morning. The visibilitychange handler
+      // below restarts it, with a fresh fetch, the moment it comes back.
+      if (document.hidden) return;
+      timer = setTimeout(run, intervalMs);
+    };
+
     const run = async () => {
       try {
         const data = await fn();
@@ -358,20 +389,25 @@ export function usePolling(fn, intervalMs, deps = []) {
         if (!cancelled && error.name !== 'AbortError') {
           setState((s) => ({ data: s.data, error, loading: false }));
         }
+      } finally {
+        // Errors keep polling too: a backend that was down for one tick should
+        // heal on the next without the operator reloading the page.
+        schedule();
       }
     };
 
     run();
-    if (intervalMs) timer = setInterval(run, intervalMs);
 
     const onFocus = () => {
-      if (!document.hidden) run();
+      if (document.hidden || cancelled) return;
+      clearTimeout(timer);
+      run();
     };
     document.addEventListener('visibilitychange', onFocus);
 
     return () => {
       cancelled = true;
-      if (timer) clearInterval(timer);
+      clearTimeout(timer);
       document.removeEventListener('visibilitychange', onFocus);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
