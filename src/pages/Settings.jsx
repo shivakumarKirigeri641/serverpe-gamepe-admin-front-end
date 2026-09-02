@@ -263,21 +263,29 @@ function DangerZone() {
   return (
     <div className="card p-5 border-2 border-bad/30 bg-bad/10/40">
       <h2 className="text-sm font-bold text-bad">Danger zone — clean up the database</h2>
+      {/* This copy is checked against what the wipe actually does. If the
+          protected list on the server changes, change these words too — a
+          destructive button that mis-states its own scope is worse than no
+          description at all. */}
       <p className="text-sm text-muted mt-2 leading-relaxed">
-        Deletes <strong>every player and game record</strong>: players, messages, events, games,
-        consents, wallets, blocks, feedback, tickets, metrics and admin sessions — and clears the
-        job queue and Redis cache along with them.
+        Deletes <strong>every player and everything they did</strong>: players, their games,
+        tickets, called numbers, answers, prize claims, consents, WhatsApp messages, board
+        sessions, feedback and the whole event history. Row counts are shown before you confirm.
       </p>
       <p className="text-sm text-muted mt-2 leading-relaxed">
-        <strong>Kept:</strong> legal documents, plans, business details and the migration ledger.
-        Your policies and prices survive, so the bot can reply the moment this finishes.
+        <strong>Kept:</strong> blocked numbers and their history, support tickets, your settings,
+        and your own admin session — so a blocked number stays blocked, an open support
+        conversation survives, and you are not signed out halfway through.
+      </p>
+      <p className="text-sm text-muted mt-2 leading-relaxed">
+        Policies and plans are not stored in the database at all, so nothing here can affect them
+        — the bot can answer the moment this finishes. This cannot be undone.
       </p>
 
       {done && (
         <div className="mt-4 rounded-xl bg-surface border border-line p-3 text-sm">
           <strong className="text-good">Done.</strong> {num(done.rowsDeleted)} rows removed from{' '}
-          {done.tablesCleared} tables, {num(done.redisKeysDeleted)} cache keys cleared
-          {done.drawJobsDropped ? `, ${done.drawJobsDropped} queued draws dropped` : ''}. Kept:{' '}
+          {done.tablesCleared} tables. Kept:{' '}
           {done.keptTables.join(', ')}.
         </div>
       )}
@@ -298,8 +306,7 @@ function DangerZone() {
           </Table>
 
           <p className="text-sm mt-3">
-            <strong>{num(preview?.totalRows)} rows</strong> and {num(preview?.redisKeys)} cache keys
-            will be deleted. Kept:{' '}
+            <strong>{num(preview?.totalRows)} rows</strong> will be deleted. Kept:{' '}
             {preview?.keep.map((k) => `${k.table} (${k.rows})`).join(', ')}.
           </p>
 
