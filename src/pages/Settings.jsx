@@ -11,6 +11,7 @@
 import { useEffect, useState } from 'react';
 import { api, num, when } from '../lib/api.js';
 import { Badge, ErrorBox, Loading, Page, Table, usePolling } from '../components/ui.jsx';
+import Maintenance from '../components/Maintenance.jsx';
 
 const PURGE_PHRASE = 'DELETE ALL PLAYER DATA';
 
@@ -361,6 +362,8 @@ export default function Settings() {
 
   return (
     <Page title="Settings" subtitle="Business, legal, queues and access">
+      <div className="mb-4"><Maintenance /></div>
+
       <div className="grid lg:grid-cols-2 gap-4 mb-4">
         <BusinessForm profile={data.business} onSaved={reload} />
 

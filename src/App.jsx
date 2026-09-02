@@ -30,6 +30,8 @@ import Trial from './pages/Trial.jsx';
 import Hosts from './pages/Hosts.jsx';
 import Notifications from './pages/Notifications.jsx';
 import Settings from './pages/Settings.jsx';
+import Audit from './pages/Audit.jsx';
+import Operations from './pages/Operations.jsx';
 
 /**
  * Grouped, because eighteen flat links is a wall you read every time instead
@@ -43,6 +45,7 @@ const NAV = [
       { to: '/', label: 'Dashboard', icon: '◎', end: true },
       { to: '/live', label: 'Live monitoring', icon: '◉' },
       { to: '/analytics', label: 'Analytics', icon: '◫' },
+      { to: '/operations', label: 'Operations', icon: '⚡' },
       { to: '/trial', label: 'Free trial', icon: '◷' },
     ],
   },
@@ -60,6 +63,7 @@ const NAV = [
     group: 'Play',
     items: [
       { to: '/games', label: 'Games', icon: '⬢' },
+      { to: '/audit', label: 'Game audit', icon: '🔍' },
       { to: '/feedback', label: 'Feedback', icon: '♥' },
       { to: '/events', label: 'Event stream', icon: '⌁' },
     ],
@@ -258,6 +262,8 @@ export default function App() {
           <Route path="/documents" element={<Documents />} />
           <Route path="/events" element={<Events />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/audit" element={<Audit />} />
+          <Route path="/operations" element={<Operations />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

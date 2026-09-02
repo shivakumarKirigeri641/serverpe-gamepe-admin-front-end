@@ -143,3 +143,30 @@
 /* Recharts paints a white focus rectangle on its wrappers when tabbed into. */
 .recharts-wrapper:focus,
 .recharts-surface:focus { outline: none; }
+
+/*
+ * Download PDF on the audit screen is the browser's own print-to-PDF. Printing
+ * a dark glass UI wastes ink and reads badly, so print drops to paper colours
+ * and hides the navigation and any control that would not work on paper.
+ */
+@media print {
+  @page { margin: 12mm; }
+  body { background: #fff !important; color: #111 !important; }
+  body::before { display: none !important; }
+  aside, header, .noprint, .claims { display: none !important; }
+  main { padding: 0 !important; max-width: none !important; }
+  .card {
+    background: #fff !important; border: 1px solid #ccc !important;
+    box-shadow: none !important; backdrop-filter: none !important;
+    break-inside: avoid;
+  }
+  .card::before { display: none !important; }
+  .text-gradient { color: #7d0f22 !important; -webkit-text-fill-color: #7d0f22 !important; }
+  .th { background: #f2f2f2 !important; color: #444 !important; }
+  .td { border-color: #ddd !important; }
+  .text-ink { color: #111 !important; }
+  .text-muted, .text-faint { color: #555 !important; }
+  .text-gold { color: #8a6a00 !important; }
+  table { max-height: none !important; }
+  .overflow-x-auto, .overflow-auto { overflow: visible !important; max-height: none !important; }
+}

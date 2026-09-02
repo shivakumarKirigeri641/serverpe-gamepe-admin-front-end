@@ -18,10 +18,31 @@ export default function Login({ onSuccess }) {
   const [error, setError] = useState(null);
   const [lockedFor, setLockedFor] = useState(0);
   const inputRef = useRef(null);
+  // Auto-submit is attempted at most once. After that the operator presses
+  // Enter, so a wrong guess cannot be retried on every keystroke.
+  const autoTried = useRef(false);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  /**
+   * Sign in as soon as the passcode looks complete, without waiting for Enter.
+   *
+   * The client is not told how long the passcode is - that would leak it - so
+   * this waits for a short pause in typing once there are at least four
+   * characters. One shot only: lockout allows five attempts in fifteen
+   * minutes, and guessing on every keystroke would spend them in seconds.
+   */
+  useEffect(() => {
+    if (autoTried.current || busy || lockedFor > 0) return undefined;
+    if (passcode.trim().length < 4) return undefined;
+
+    const value = passcode;
+    const timer = setTimeout(() => submit(null, value), 400);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passcode, busy, lockedFor]);
 
   // Count the lockout down on screen, so the wait is visible rather than a
   // dead form that silently refuses.
@@ -31,16 +52,20 @@ export default function Login({ onSuccess }) {
     return () => clearInterval(timer);
   }, [lockedFor]);
 
-  const submit = async (event) => {
-    event.preventDefault();
+  const submit = async (event, value = passcode) => {
+    event?.preventDefault();
     if (busy || lockedFor > 0) return;
 
     setBusy(true);
     setError(null);
     try {
-      await login(passcode, 'panel');
+      await login(value, 'panel');
       onSuccess();
     } catch (err) {
+      // An auto-submit that was wrong falls back to manual, so a longer
+      // passcode cannot burn several of the five allowed attempts while it is
+      // still being typed.
+      autoTried.current = true;
       setPasscode('');
       inputRef.current?.focus();
 

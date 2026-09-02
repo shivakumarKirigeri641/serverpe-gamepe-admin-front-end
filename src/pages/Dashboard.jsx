@@ -54,7 +54,19 @@ export default function Dashboard() {
   // Sparklines read the same 30-day series, so a tile and the chart below it
   // can never disagree about what happened.
   const spark = (key) => series.map((s) => s[key]);
-  const funnelMax = funnel?.length ? Math.max(...funnel.map((s) => s.value)) : 0;
+  // /funnel is an object keyed by step, matching what Analytics expects; the
+  // labels live here so both screens can word them differently if they need to.
+  const FUNNEL_STEPS = [
+    ['messaged_bot', 'Messaged us'],
+    ['saw_menu', 'Accepted terms'],
+    ['joined_room', 'Joined a game'],
+    ['started_game', 'Played'],
+    ['won_a_prize', 'Won a prize'],
+  ];
+  const funnelRows = funnel
+    ? FUNNEL_STEPS.map(([key, label]) => ({ label, value: funnel[key] ?? 0 }))
+    : [];
+  const funnelMax = funnelRows.length ? Math.max(...funnelRows.map((s) => s.value)) : 0;
 
   const rightNow = [
     ['Games running', live.counts.games_running, 'text-good'],
@@ -175,10 +187,10 @@ export default function Dashboard() {
       </div>
 
       <div className="grid xl:grid-cols-2 gap-4">
-        {funnel?.length > 0 && (
+        {funnelRows.length > 0 && (
           <Panel title="From first message to a prize" subtitle="Last 30 days"
             actions={<Link to="/analytics" className="text-xs font-semibold text-gold hover:underline">Analytics →</Link>}>
-            {funnel.map((step, i) => (
+            {funnelRows.map((step, i) => (
               <BarRow key={step.label} index={i} label={step.label} value={step.value} max={funnelMax}
                 color={VIZ[i % VIZ.length]}
                 hint={funnelMax > 0 ? `${Math.round((step.value / funnelMax) * 100)}%` : null} />

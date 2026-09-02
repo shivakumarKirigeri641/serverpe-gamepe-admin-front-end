@@ -156,7 +156,19 @@ export async function logout() {
 export const inr = (paise) =>
   '₹' + Number((paise || 0) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 
-export const num = (n) => Number(n || 0).toLocaleString('en-IN');
+/**
+ * Formats a count.
+ *
+ * Anything that is not actually a number is passed straight through. Several
+ * screens hand this composite strings like "12 / 8", and Number() turns those
+ * into NaN — a cell reading "NaN" is worse than one reading the raw value.
+ */
+export const num = (n) => {
+  if (n === null || n === undefined || n === '') return '0';
+  if (typeof n === 'number') return Number.isFinite(n) ? n.toLocaleString('en-IN') : String(n);
+  const parsed = Number(n);
+  return Number.isFinite(parsed) ? parsed.toLocaleString('en-IN') : String(n);
+};
 
 /**
  * Phone numbers in full.
