@@ -115,6 +115,43 @@ function PlayerDetail({ id }) {
         </div>
       </div>
 
+      {/* What the score is made of.
+          A total on its own cannot tell a careless player from an unlucky one:
+          both land mid-table, for opposite reasons. */}
+      <div className="card p-4 mb-4">
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="text-sm font-bold">Marking</h2>
+          <span className="text-xs text-muted">
+            {p.accuracy_pct === null || p.accuracy_pct === undefined
+              ? 'Has not played yet'
+              : `${p.accuracy_pct}% of decisions right`}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            ['Correct', p.correct_answers, 'text-good',
+             'Spotted a called number on their own ticket'],
+            ['Missed', p.missed, 'text-bad',
+             'Said "not on mine" when it was — the costly one'],
+            ['Wrong taps', p.wrong_taps, 'text-ink',
+             'Marked a number they did not have — costs nothing in play'],
+            ['No response', p.no_response, 'text-muted',
+             'Never answered — usually a dropped connection, not carelessness'],
+          ].map(([label, value, tone, hint]) => (
+            <div key={label} className="rounded-lg border border-line p-3" title={hint}>
+              <p className="text-xs text-muted">{label}</p>
+              <p className={`text-lg font-bold ${tone}`}>{num(value)}</p>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs text-muted mt-3">
+          Points = prizes×10 + correct − missed×2 − wrong taps. No response is not
+          penalised. Admin-only — players never see this score.
+        </p>
+      </div>
+
       <h2 className="text-sm font-bold mb-2">Credit movements</h2>
       <div className="mb-5">
         <Table head={['When', 'Amount', 'Reason', 'Note', 'By']} empty="No credit movements.">
