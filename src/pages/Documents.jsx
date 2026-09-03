@@ -1,176 +1,191 @@
 /**
  * src/pages/Documents.jsx
  * ---------------------------------------------------------------------------
- * Every PDF the platform has generated: player reports and, once charging
- * begins, invoices.
+ * The policies, editable.
  *
- * Kept because rebuilding a report would not reproduce it — a player's history
- * has moved on by the time anybody asks for it again — and because an invoice
- * is a financial record that has to outlive the WhatsApp conversation it was
- * sent in.
+ * These pages are read by people who decide whether the platform is allowed to
+ * operate: Meta reviews them before approving a WhatsApp business app, and
+ * Razorpay before enabling payments. Both come back asking for wording
+ * changes, and until now those words lived in a page template — so correcting
+ * a sentence in a privacy policy meant a code change and a deploy.
  *
- * Numbers restart at 1 every day: RPT<date>MP<n> and INV<date>MP<n>. The last
- * number of a day is that day's volume, readable without opening anything.
+ * Two deliberate restrictions:
+ *
+ *   • The key cannot be changed. It forms the public URL, and Meta holds those
+ *     URLs on file. Renaming one 404s a link a reviewer is holding.
+ *
+ *   • The version is a separate field, changed by hand. Player consent is
+ *     recorded against it, so bumping it asks every player to agree again on
+ *     their next message. That should be a decision, never a side effect of
+ *     fixing a typo.
  */
 
-import { useState } from 'react';
-import { API_BASE, api, getToken, num, when } from '../lib/api.js';
-import { Badge, ErrorBox, Loading, Page, REFRESH_MS, Stat, Table, usePolling } from '../components/ui.jsx';
+import { useEffect, useState } from 'react';
+import { api } from '../lib/api.js';
+import { Badge, ErrorBox, Loading, Page, usePolling, REFRESH_MS } from '../components/ui.jsx';
 
-const KINDS = [
-  ['', 'All'],
-  ['report', 'Reports'],
-  ['invoice', 'Invoices'],
-];
-
-const size = (bytes) => {
-  const n = Number(bytes || 0);
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
-  return `${(n / 1024 / 1024).toFixed(1)} MB`;
-};
-
-/**
- * Opens a stored PDF.
- *
- * Fetched with the session token and handed to the browser as a blob rather
- * than linked directly: the file route needs the Authorization header, which a
- * plain <a href> cannot send.
- */
-async function openDocument(id, filename, download) {
-  const res = await fetch(
-    `${API_BASE}/serverpe/platform/mastipe/v1/admin/documents/${id}/file`,
-    { headers: { Authorization: `Bearer ${getToken()}` } },
+/** Renders the stored plain text the way the public pages do. */
+function Preview({ text }) {
+  const blocks = String(text ?? '').split(/\n{2,}/);
+  return (
+    <div className="text-[13px] leading-relaxed text-muted space-y-3">
+      {blocks.map((block, i) => {
+        const lines = block.split('\n');
+        if (lines.every((l) => l.trim().startsWith('- '))) {
+          return (
+            <ul key={i} className="list-disc pl-5 space-y-1">
+              {lines.map((l, j) => <li key={j}>{l.replace(/^\s*-\s*/, '')}</li>)}
+            </ul>
+          );
+        }
+        if (lines.length === 1 && lines[0].trim().endsWith(':')) {
+          return <p key={i} className="font-bold text-ink">{lines[0]}</p>;
+        }
+        return <p key={i}>{block}</p>;
+      })}
+    </div>
   );
-  if (!res.ok) throw new Error('Could not open that document');
+}
 
-  const url = URL.createObjectURL(await res.blob());
-  if (download) {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-  } else {
-    window.open(url, '_blank', 'noopener');
-  }
-  // Revoked late: Chrome needs the URL alive until the new tab has read it.
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+function Editor({ doc, onSaved }) {
+  const [form, setForm] = useState(doc);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [saved, setSaved] = useState(false);
+
+  // A newer copy arriving from the poll must not overwrite what is being typed.
+  useEffect(() => { setForm(doc); setSaved(false); }, [doc.doc_key, doc.updated_at]);
+
+  const dirty =
+    form.title !== doc.title || form.summary !== doc.summary ||
+    form.body !== doc.body || form.version !== doc.version;
+
+  const set = (k) => (e) => { setForm({ ...form, [k]: e.target.value }); setSaved(false); };
+
+  const save = async () => {
+    setSaving(true); setError(null);
+    try {
+      await api.patch(`/legal/documents/${doc.doc_key}`, {
+        lang: doc.lang,
+        title: form.title,
+        summary: form.summary,
+        body: form.body,
+        version: form.version,
+      });
+      setSaved(true);
+      onSaved?.();
+    } catch (err) {
+      setError(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const publicUrl = `https://mastipe.in/policies/${doc.doc_key}`;
+
+  return (
+    <div className="card p-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="font-extrabold text-ink">{doc.title}</h2>
+            {doc.requires_consent && <Badge value="needs consent" tone="bg-brand/10 text-gold" />}
+          </div>
+          <a href={publicUrl} target="_blank" rel="noreferrer"
+             className="text-[11.5px] text-gold hover:underline font-mono break-all">
+            {publicUrl}
+          </a>
+        </div>
+        <span className="text-[11px] text-faint whitespace-nowrap">
+          v{doc.version}
+        </span>
+      </div>
+
+      <label className="block mt-4 text-[11px] font-bold uppercase tracking-wider text-muted">Title</label>
+      <input className="input mt-1" value={form.title ?? ''} onChange={set('title')} />
+
+      <label className="block mt-3 text-[11px] font-bold uppercase tracking-wider text-muted">Summary</label>
+      <input className="input mt-1" value={form.summary ?? ''} onChange={set('summary')} />
+
+      <label className="block mt-3 text-[11px] font-bold uppercase tracking-wider text-muted">
+        Body
+        <span className="ml-2 font-normal normal-case tracking-normal text-faint">
+          blank line = new paragraph · line starting “- ” = bullet · line ending “:” = heading
+        </span>
+      </label>
+      <textarea
+        className="input mt-1 font-mono text-[12.5px] leading-relaxed"
+        rows={16}
+        value={form.body ?? ''}
+        onChange={set('body')}
+      />
+
+      <label className="block mt-3 text-[11px] font-bold uppercase tracking-wider text-muted">
+        Version
+        {doc.requires_consent && (
+          <span className="ml-2 font-normal normal-case tracking-normal text-bad">
+            changing this asks every player to accept again
+          </span>
+        )}
+      </label>
+      <input className="input mt-1 w-40" value={form.version ?? ''} onChange={set('version')} />
+
+      <div className="flex items-center gap-3 mt-4 flex-wrap">
+        <button className="btn btn-pri" onClick={save} disabled={!dirty || saving}>
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+        {saved && !dirty && <span className="text-good text-sm font-semibold">Saved — live now</span>}
+        {dirty && !saving && <span className="text-gold text-sm">Unsaved changes</span>}
+        <span className="text-[11px] text-faint ml-auto">
+          last edited {doc.updated_by || 'seed'}
+        </span>
+      </div>
+
+      {error && <div className="mt-3"><ErrorBox error={error} /></div>}
+
+      <details className="mt-5">
+        <summary className="cursor-pointer text-[12px] text-muted">Preview as players see it</summary>
+        <div className="mt-3 border-t border-line pt-3"><Preview text={form.body} /></div>
+      </details>
+    </div>
+  );
 }
 
 export default function Documents() {
-  const [kind, setKind] = useState('');
-  const [failed, setFailed] = useState(null);
-
   const { data, error, loading, refresh } = usePolling(
-    () => api.get(`/documents?limit=200${kind ? `&kind=${kind}` : ''}`),
+    () => api.get('/legal/documents?lang=en'),
     REFRESH_MS,
-    [kind],
+    [],
   );
 
-  if (error && !data) return <ErrorBox error={error} onRetry={refresh} />;
-  if (loading && !data) return <Loading />;
+  if (loading && !data) return <Loading label="Reading the policies…" />;
+  if (error && !data) return <ErrorBox error={error} />;
 
-  const docs = data?.documents ?? [];
-  const stats = data?.stats ?? [];
-  const today = stats.filter((s) => s.issued_on === new Date().toISOString().slice(0, 10));
-  const totalBytes = stats.reduce((sum, s) => sum + Number(s.bytes || 0), 0);
+  const docs = Array.isArray(data) ? data : [];
 
   return (
     <Page
-      title="Documents"
-      subtitle="Generated reports and invoices, kept on disk"
-      actions={
-        <button className="btn-sec" onClick={refresh}>
-          Refresh
-        </button>
-      }
+      title="Policies & terms"
+      subtitle="Edited here, live immediately on mastipe.in and in WhatsApp"
     >
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <Stat index={0} label="Documents" value={num(docs.length)} />
-        <Stat
-          index={1}
-          label="Reports today"
-          value={num(today.find((s) => s.kind === 'report')?.documents ?? 0)}
-          tone="ink"
-        />
-        <Stat
-          index={2}
-          label="Invoices today"
-          value={num(today.find((s) => s.kind === 'invoice')?.documents ?? 0)}
-          tone="ink"
-        />
-        <Stat index={3} label="On disk" value={size(totalBytes)} tone="ink" />
+      <div className="card p-4 mb-4">
+        <p className="text-sm text-muted leading-relaxed">
+          Meta reviews these before approving the WhatsApp app, and Razorpay before enabling
+          payments. They are stored in the database, so a wording change asks for nothing more
+          than a save — no deploy. The public address of each is fixed: it is what reviewers
+          have on file.
+        </p>
       </div>
 
-      <div className="flex flex-wrap gap-1 mb-4">
-        {KINDS.map(([value, label]) => (
-          <button
-            key={value}
-            onClick={() => setKind(value)}
-            className={`btn ${kind === value ? 'btn-pri' : 'btn-sec'} !px-4 !py-2 text-xs`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {failed && <ErrorBox error={failed} />}
-
-      <Table
-        head={['Number', 'Kind', 'For', 'Room', 'Issued', 'Size', '']}
-        empty="No documents yet. Reports are filed here as games finish."
-      >
-        {docs.map((d) => (
-          <tr key={d.id} className="hover:bg-line/20">
-            <td className="td font-mono font-semibold">{d.doc_number}</td>
-            <td className="td">
-              <Badge
-                value={d.kind}
-                tone={d.kind === 'invoice' ? 'bg-gold/15 text-[#7a5b00]' : 'bg-brand/10 text-gold'}
-              />
-            </td>
-            <td className="td text-sm">
-              {d.display_name || (d.wa_id ? `+${d.wa_id}` : '—')}
-              {d.title && <div className="text-xs text-muted">{d.title}</div>}
-            </td>
-            <td className="td font-mono text-xs">{d.room_code || '—'}</td>
-            <td className="td text-xs text-muted whitespace-nowrap">{when(d.created_at)}</td>
-            <td className="td text-xs text-muted">{size(d.byte_size)}</td>
-            <td className="td text-right whitespace-nowrap">
-              <button
-                className="btn-sec !px-3 !py-1.5 text-xs mr-1"
-                onClick={() => openDocument(d.id, d.filename, false).catch(setFailed)}
-              >
-                Open
-              </button>
-              <button
-                className="btn-sec !px-3 !py-1.5 text-xs"
-                onClick={() => openDocument(d.id, d.filename, true).catch(setFailed)}
-              >
-                Download
-              </button>
-            </td>
-          </tr>
-        ))}
-      </Table>
-
-      {stats.length > 0 && (
-        <>
-          <h2 className="text-sm font-bold mt-6 mb-2">Per day</h2>
-          <Table head={['Day', 'Kind', 'Documents', 'Size']}>
-            {stats.map((s, i) => (
-              <tr key={i}>
-                <td className="td">{s.issued_on}</td>
-                <td className="td">
-                  <Badge value={s.kind} />
-                </td>
-                <td className="td font-semibold">{num(s.documents)}</td>
-                <td className="td text-muted text-xs">{size(s.bytes)}</td>
-              </tr>
-            ))}
-          </Table>
-        </>
+      {docs.length === 0 && (
+        <div className="card p-8 text-center text-muted">
+          No documents yet. They are seeded when the back end starts.
+        </div>
       )}
+
+      <div className="space-y-4">
+        {docs.map((d) => <Editor key={d.doc_key} doc={d} onSaved={refresh} />)}
+      </div>
     </Page>
   );
 }
