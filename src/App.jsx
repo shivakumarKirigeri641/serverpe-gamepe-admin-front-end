@@ -13,6 +13,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { fetchBrand, getToken, logout, setToastHandler, setUnauthorizedHandler } from './lib/api.js';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import BakraDashboard from './pages/BakraDashboard.jsx';
+import BakraRounds from './pages/BakraRounds.jsx';
+import BakraQuestions from './pages/BakraQuestions.jsx';
 import Live from './pages/Live.jsx';
 import Analytics from './pages/Analytics.jsx';
 import Conversations from './pages/Conversations.jsx';
@@ -60,10 +63,23 @@ const NAV = [
     ],
   },
   {
-    group: 'Play',
+    group: 'Tambola',
     items: [
       { to: '/games', label: 'Games', icon: '⬢' },
       { to: '/audit', label: 'Game audit', icon: '🔍' },
+    ],
+  },
+  {
+    group: 'Tap Bakra',
+    items: [
+      { to: '/bakra', label: 'Overview', icon: '🐐', end: true },
+      { to: '/bakra/rounds', label: 'Rounds', icon: '≡' },
+      { to: '/bakra/questions', label: 'Questions', icon: '?' },
+    ],
+  },
+  {
+    group: 'Shared',
+    items: [
       { to: '/feedback', label: 'Feedback', icon: '♥' },
       { to: '/events', label: 'Event stream', icon: '⌁' },
     ],
@@ -252,6 +268,10 @@ export default function App() {
           <Route path="/players/:id" element={<Players />} />
           <Route path="/lookup" element={<Lookup />} />
           <Route path="/moderation" element={<Moderation />} />
+          <Route path="/bakra" element={<BakraDashboard />} />
+          <Route path="/bakra/rounds" element={<BakraRounds />} />
+          <Route path="/bakra/rounds/:id" element={<BakraRounds />} />
+          <Route path="/bakra/questions" element={<BakraQuestions />} />
           <Route path="/games" element={<Games />} />
           <Route path="/games/:id" element={<Games />} />
           <Route path="/revenue" element={<Revenue />} />
