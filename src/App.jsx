@@ -17,6 +17,7 @@ import BakraDashboard from './pages/BakraDashboard.jsx';
 import BakraRounds from './pages/BakraRounds.jsx';
 import BakraQuestions from './pages/BakraQuestions.jsx';
 import Live from './pages/Live.jsx';
+import LiveOps from './pages/LiveOps.jsx';
 import Analytics from './pages/Analytics.jsx';
 import Conversations from './pages/Conversations.jsx';
 import Games from './pages/Games.jsx';
@@ -46,6 +47,7 @@ const NAV = [
     group: 'Overview',
     items: [
       { to: '/', label: 'Dashboard', icon: '◎', end: true },
+      { to: '/live-ops', label: 'Live operations', icon: '❤' },
       { to: '/live', label: 'Live monitoring', icon: '◉' },
       { to: '/analytics', label: 'Analytics', icon: '◫' },
       { to: '/operations', label: 'Operations', icon: '⚡' },
@@ -57,9 +59,12 @@ const NAV = [
     items: [
       { to: '/players', label: 'Players', icon: '☰' },
       { to: '/hosts', label: 'Hosts', icon: '★' },
-      { to: '/conversations', label: 'Conversations', icon: '✉' },
       { to: '/lookup', label: 'Number lookup', icon: '⌕' },
       { to: '/moderation', label: 'Blocked numbers', icon: '⊘' },
+      // Reads the WhatsApp message log, and there is no inbound channel any
+      // more. Kept reachable because there are real player exchanges in it,
+      // and labelled so nobody opens it expecting live traffic.
+      { to: '/conversations', label: 'Conversations (archive)', icon: '✉' },
     ],
   },
   {
@@ -258,6 +263,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/live" element={<Live />} />
+          <Route path="/live-ops" element={<LiveOps />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/trial" element={<Trial />} />
           <Route path="/conversations" element={<Conversations />} />

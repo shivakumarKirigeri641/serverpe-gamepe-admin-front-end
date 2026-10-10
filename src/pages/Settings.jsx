@@ -224,6 +224,55 @@ function LegalDocs({ docs, onSaved }) {
   );
 }
 
+function PlayChannelForm({ value, onSaved }) {
+  const [mode, setMode] = useState(value?.mode || 'whatsapp');
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => setMode(value?.mode || 'whatsapp'), [value?.mode]);
+
+  const save = async (event) => {
+    event.preventDefault();
+    setBusy(true);
+    try {
+      await api.put('/settings/play-channel', { mode });
+      onSaved();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="card p-5">
+      <h2 className="text-sm font-bold mb-2">Play channel</h2>
+      <p className="text-xs text-muted mb-4">
+        Controls whether players enter via WhatsApp, web, or both.
+      </p>
+
+      <div className="space-y-2">
+        <label className="flex items-start gap-2">
+          <input type="radio" name="mode" value="whatsapp" checked={mode === 'whatsapp'}
+            onChange={(e) => setMode(e.target.value)} />
+          <span className="text-sm">WhatsApp only</span>
+        </label>
+        <label className="flex items-start gap-2">
+          <input type="radio" name="mode" value="web" checked={mode === 'web'}
+            onChange={(e) => setMode(e.target.value)} />
+          <span className="text-sm">Web only</span>
+        </label>
+        <label className="flex items-start gap-2">
+          <input type="radio" name="mode" value="hybrid" checked={mode === 'hybrid'}
+            onChange={(e) => setMode(e.target.value)} />
+          <span className="text-sm">Hybrid (both)</span>
+        </label>
+      </div>
+
+      <button className="btn-pri mt-4" disabled={busy}>
+        {busy ? 'Saving…' : 'Save play channel'}
+      </button>
+    </form>
+  );
+}
+
 /**
  * Clears out test data.
  *
@@ -357,7 +406,10 @@ export default function Settings() {
         api.get('/queues'),
         api.get('/sessions'),
       ]);
-      return { business, docs, consent, queues, sessions };
+      const playChannel = await api.get('/settings/play-channel');
+      return {
+        business, docs, consent, queues, sessions, playChannel,
+      };
     },
     null,
     [nonce],
@@ -376,6 +428,8 @@ export default function Settings() {
         <BusinessForm profile={data.business} onSaved={reload} />
 
         <div className="space-y-4">
+          <PlayChannelForm value={data.playChannel} onSaved={reload} />
+
           <div className="card p-4">
             <h2 className="text-sm font-bold mb-3">Delivery totals</h2>
             {/* The draw counters that used to sit here - running games, draws
