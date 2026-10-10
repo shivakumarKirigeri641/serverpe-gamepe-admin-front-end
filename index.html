@@ -7,14 +7,33 @@
     <meta name="theme-color" content="#0b0910" />
     <title>MastiPe Admin</title>
 
-    <!-- Preconnect first: the font is the only external request the panel
-         makes, and it blocks first paint of every number on the screen. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
+    <!--
+      NO web fonts.
+      ---------------------------------------------------------------------
+      This used to pull Inter and JetBrains Mono from Google. It was the only
+      external request the panel made, and it earned its keep right up until
+      it started failing:
+
+        Access to font at 'https://fonts.gstatic.com/...' from origin
+        'https://admin.mastipe.in' has been blocked by CORS policy: the
+        'Access-Control-Allow-Origin' header has a value 'https://mastipe.in'
+
+      Google serves fonts with `Access-Control-Allow-Origin: *`, so that value
+      cannot have come from Google. It comes from a CACHED response: the same
+      font URL was fetched while on mastipe.in, something in the path reflected
+      that origin back without a `Vary: Origin`, and the browser then reused
+      the one cache entry for the panel's different origin. Nothing on our side
+      can fix a poisoned shared cache, and a hard refresh only fixes it until
+      the next time.
+
+      tailwind.config.js already falls back to Segoe UI, then system-ui - which
+      on the machines this panel is actually used from is near-identical to
+      Inter. So an internal tool now loads with zero external requests, faster,
+      and with one entire class of error gone for good.
+
+      If Inter specifically is ever wanted back, self-host the woff2 files in
+      /public rather than re-adding this link.
+    -->
 
     <!-- Painted before React mounts, so a slow bundle shows the panel's own
          dark ground rather than a white flash. -->
