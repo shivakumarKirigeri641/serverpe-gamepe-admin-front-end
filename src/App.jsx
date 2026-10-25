@@ -16,6 +16,8 @@ import Dashboard from './pages/Dashboard.jsx';
 import BakraDashboard from './pages/BakraDashboard.jsx';
 import BakraRounds from './pages/BakraRounds.jsx';
 import BakraQuestions from './pages/BakraQuestions.jsx';
+import CricketDashboard from './pages/CricketDashboard.jsx';
+import CricketMatches from './pages/CricketMatches.jsx';
 import Live from './pages/Live.jsx';
 import LiveOps from './pages/LiveOps.jsx';
 import Analytics from './pages/Analytics.jsx';
@@ -80,6 +82,13 @@ const NAV = [
       { to: '/bakra', label: 'Overview', icon: '🐐', end: true },
       { to: '/bakra/rounds', label: 'Rounds', icon: '≡' },
       { to: '/bakra/questions', label: 'Questions', icon: '?' },
+    ],
+  },
+  {
+    group: 'Hand Cricket',
+    items: [
+      { to: '/cricket', label: 'Overview', icon: '🏏', end: true },
+      { to: '/cricket/matches', label: 'Matches', icon: '≡' },
     ],
   },
   {
@@ -278,6 +287,9 @@ export default function App() {
           <Route path="/bakra/rounds" element={<BakraRounds />} />
           <Route path="/bakra/rounds/:id" element={<BakraRounds />} />
           <Route path="/bakra/questions" element={<BakraQuestions />} />
+          <Route path="/cricket" element={<CricketDashboard />} />
+          <Route path="/cricket/matches" element={<CricketMatches />} />
+          <Route path="/cricket/matches/:id" element={<CricketMatches />} />
           <Route path="/games" element={<Games />} />
           <Route path="/games/:id" element={<Games />} />
           <Route path="/revenue" element={<Revenue />} />

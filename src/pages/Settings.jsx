@@ -274,6 +274,48 @@ function PlayChannelForm({ value, onSaved }) {
 }
 
 /**
+ * Which side games players are offered (2026-10-25). Switching one off hides
+ * its buttons on the play page and the marketing site on the next load; links
+ * already sent keep working, and its admin screens stay readable.
+ */
+function GamesForm({ value, onSaved }) {
+  const [games, setGames] = useState({ bakra: !!value?.bakra, cricket: !!value?.cricket });
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => setGames({ bakra: !!value?.bakra, cricket: !!value?.cricket }), [value?.bakra, value?.cricket]);
+
+  const save = async (event) => {
+    event.preventDefault();
+    setBusy(true);
+    try {
+      await api.put('/settings/games', games);
+      onSaved();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const row = (key, label, hint) => (
+    <label className="flex items-start gap-2">
+      <input type="checkbox" checked={games[key]} onChange={(e) => setGames((g) => ({ ...g, [key]: e.target.checked }))} />
+      <span className="text-sm">{label}<span className="block text-xs text-muted">{hint}</span></span>
+    </label>
+  );
+
+  return (
+    <form onSubmit={save} className="card p-5">
+      <h2 className="text-sm font-bold mb-2">Games on offer</h2>
+      <p className="text-xs text-muted mb-4">Tambola is always on. Untick a game to take it off the play page and the website.</p>
+      <div className="space-y-3">
+        {row('cricket', 'Hand Cricket', 'Against the bot, or a friend by code')}
+        {row('bakra', 'Tap Bakra', 'Ten quick questions, on your own')}
+      </div>
+      <button className="btn-pri mt-4" disabled={busy}>{busy ? 'Saving…' : 'Save games'}</button>
+    </form>
+  );
+}
+
+/**
  * Clears out test data.
  *
  * Testing a WhatsApp product leaves the database full of people who do not
@@ -406,9 +448,12 @@ export default function Settings() {
         api.get('/queues'),
         api.get('/sessions'),
       ]);
-      const playChannel = await api.get('/settings/play-channel');
+      const [playChannel, games] = await Promise.all([
+        api.get('/settings/play-channel'),
+        api.get('/settings/games').catch(() => null),
+      ]);
       return {
-        business, docs, consent, queues, sessions, playChannel,
+        business, docs, consent, queues, sessions, playChannel, games,
       };
     },
     null,
@@ -429,6 +474,7 @@ export default function Settings() {
 
         <div className="space-y-4">
           <PlayChannelForm value={data.playChannel} onSaved={reload} />
+          {data.games && <GamesForm value={data.games} onSaved={reload} />}
 
           <div className="card p-4">
             <h2 className="text-sm font-bold mb-3">Delivery totals</h2>
